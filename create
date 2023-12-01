@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# usage e.g.:
+# > ./create Four
+
+sed 's/$DAY/'"$1"'/' src/Template > src/$1.purs
+sed 's/$DAY/'"$1"'/' test/Template > test/$1.purs
+echo 'Get input from:'
+echo 'https://adventofcode.com/2023/day/$1/input'
+read -p 'Press enter to open ./input/$1' -s
+vim input/$1
