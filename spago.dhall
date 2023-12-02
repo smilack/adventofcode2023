@@ -13,8 +13,15 @@ to generate this file without the comments in this block.
 { name = "my-project"
 , dependencies =
   [ "aff"
+  , "arrays"
   , "console"
+  , "control"
   , "effect"
+  , "either"
+  , "foldable-traversable"
+  , "integers"
+  , "lists"
+  , "maybe"
   , "node-buffer"
   , "node-fs"
   , "parsing"
@@ -23,6 +30,8 @@ to generate this file without the comments in this block.
   , "spec"
   , "spec-quickcheck"
   , "strings"
+  , "tuples"
+  , "unicode"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
