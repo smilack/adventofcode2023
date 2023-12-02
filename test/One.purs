@@ -2,20 +2,15 @@ module Test.AdventOfCode.Twenty23.One
   ( main
   ) where
 
-import AdventOfCode.Twenty23.One
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.One (getNumber, parseInput1, parseInput2, solve2)
+import AdventOfCode.Twenty23.Util (lines)
 import Prelude
 
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Console (log)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Console (logWriter)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
