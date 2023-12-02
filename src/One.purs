@@ -11,7 +11,7 @@ import AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Alt ((<|>))
-import Data.Array (filter, head, reverse)
+import Data.Array (filter, head, reverse, tail)
 import Data.CodePoint.Unicode (isDecDigit)
 import Data.Either (Either(..))
 import Data.Foldable (sum)
@@ -21,8 +21,9 @@ import Data.List.NonEmpty (NonEmptyList)
 import Data.Maybe (fromMaybe)
 import Data.String (CodePoint, split)
 import Data.String.CodePoints (codePointFromChar)
-import Data.String.CodeUnits (singleton, toCharArray)
+import Data.String.CodeUnits (singleton, toCharArray, uncons)
 import Data.String.Pattern (Pattern(..))
+import Data.String.Utils (startsWith)
 import Data.Traversable (sequence, traverse)
 import Data.Tuple (fst, snd)
 import Effect (Effect)
@@ -34,7 +35,7 @@ import Node.FS.Aff (readTextFile)
 import Parsing (Parser, runParser)
 import Parsing.Combinators (many1, try)
 import Parsing.Combinators.Array (many)
-import Parsing.String (anyChar, anyCodePoint, anyTill, string)
+import Parsing.String (anyChar, anyCodePoint, anyTill, consumeWith, string)
 import Parsing.String.Basic (digit)
 
 main :: Effect Unit
@@ -47,16 +48,17 @@ main = launchAff_ do
     log "Part2:"
     log "Sum of numbers"
     logShow $ solve2 input
-    _ <- traverse
-      ( \line -> liftEffect do
-          log line
-          let p = parseInput2 line
-          logShow p
-          let n = getNumber p
-          logShow n
-      )
-      (lines input)
-    pure unit
+
+-- _ <- traverse
+--   ( \line -> liftEffect do
+--       log line
+--       let p = parseInput2 line
+--       logShow p
+--       let n = getNumber p
+--       logShow n
+--   )
+--   (lines input)
+-- pure unit
 
 parseInput1 :: String -> Array (Array Char)
 parseInput1 =
@@ -93,15 +95,43 @@ parseInput2 i =
       digits = map snd digitTuples
     pure digits
 
-  digitParser :: Parser String Char
-  digitParser =
-    try digit
-      <|> try (string "one" >>= const (pure '1'))
-      <|> try (string "two" >>= const (pure '2'))
-      <|> try (string "three" >>= const (pure '3'))
-      <|> try (string "four" >>= const (pure '4'))
-      <|> try (string "five" >>= const (pure '5'))
-      <|> try (string "six" >>= const (pure '6'))
-      <|> try (string "seven" >>= const (pure '7'))
-      <|> try (string "eight" >>= const (pure '8'))
-      <|> try (string "nine" >>= const (pure '9'))
+-- digitParser :: Parser String Char
+-- digitParser =
+--   try digit
+--     <|> try (string "one" >>= const (pure '1'))
+--     <|> try (string "two" >>= const (pure '2'))
+--     <|> try (string "three" >>= const (pure '3'))
+--     <|> try (string "four" >>= const (pure '4'))
+--     <|> try (string "five" >>= const (pure '5'))
+--     <|> try (string "six" >>= const (pure '6'))
+--     <|> try (string "seven" >>= const (pure '7'))
+--     <|> try (string "eight" >>= const (pure '8'))
+--     <|> try (string "nine" >>= const (pure '9'))
+
+digitParser :: Parser String Char
+digitParser = try digit <|> try (consumeWith checkSpelled)
+
+checkSpelled
+  :: String
+  -> Either
+       String
+       { consumed :: String, remainder :: String, value :: Char }
+
+checkSpelled s = result
+  where
+  result
+    | startsWith "one" s = Right $ rec "o" '1'
+    | startsWith "two" s = Right $ rec "t" '2'
+    | startsWith "three" s = Right $ rec "t" '3'
+    | startsWith "four" s = Right $ rec "f" '4'
+    | startsWith "five" s = Right $ rec "f" '5'
+    | startsWith "six" s = Right $ rec "s" '6'
+    | startsWith "seven" s = Right $ rec "s" '7'
+    | startsWith "eight" s = Right $ rec "e" '8'
+    | startsWith "nine" s = Right $ rec "n" '9'
+    | otherwise = Left "Does not start with a spelled digit"
+  rec =
+    { consumed: _
+    , remainder: fromMaybe "" $ map (_.tail) $ uncons s
+    , value: _
+    }
