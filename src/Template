@@ -1,4 +1,6 @@
-module AdventOfCode.Twenty23.$DAY where
+module AdventOfCode.Twenty23.$DAY
+  ( main
+  ) where
 
 import Prelude
 import AdventOfCode.Twenty23.Util
