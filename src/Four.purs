@@ -1,25 +1,27 @@
 module AdventOfCode.Twenty23.Four
-  ( main
-  , Card
-  , parseCard
-  , parseCards
-  , value
-  , points
-  , solve1
+  ( Card
   , Card2
-  , parseCard2s
+  , copy
+  , main
+  , parseCard
   , parseCard2
+  , parseCard2s
+  , parseCards
+  , points
+  , process
+  , solve1
+  , solve2
+  , value
   ) where
 
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Util (modify, sumMap)
 import Prelude
 
-import Data.Array (intersect, length)
-import Data.Either (Either(..))
+import Data.Array (intersect, length, modifyAtIndices, range, (!!))
+import Data.Either (Either(..), either)
 import Data.Foldable (sum)
 import Data.Int (pow)
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
+import Data.Maybe (Maybe(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
@@ -39,9 +41,8 @@ main = launchAff_ do
     log "Sum of card values"
     logShow $ solve1 input
     log "Part2:"
-
--- log ""
--- logShow $ solve2 input
+    log "does the card stuff"
+    logShow $ solve2 input
 
 type Card = { have :: Array Int, winners :: Array Int }
 
@@ -65,7 +66,7 @@ parseCard = do
     intDecimal
   pure { have, winners }
 
-value :: Card -> Int
+value :: forall r. { have :: Array Int, winners :: Array Int | r } -> Int
 value { have, winners } = points $ intersect have winners
 
 points :: Array Int -> Int
@@ -100,3 +101,27 @@ parseCard2 = do
     skipSpaces
     intDecimal
   pure { id, have, winners, copies: 1 }
+
+solve2 :: String -> Int
+solve2 input =
+  either
+    (const 0)
+    (sumMap (_.copies) <<< process)
+    $ runParser input parseCard2s
+
+process :: Array Card2 -> Array Card2
+process = go 0
+  where
+  go id array =
+    case array !! id of
+      Nothing -> array
+      Just { copies, have, winners } ->
+        let
+          pts = length $ intersect have winners
+          nextId = id + 1
+          ids = if pts > 0 then range nextId (id + pts) else []
+        in
+          go nextId (copy ids copies array)
+
+copy :: Array Int -> Int -> Array Card2 -> Array Card2
+copy ids times array = modifyAtIndices ids (modify @"copies" (add times)) array
