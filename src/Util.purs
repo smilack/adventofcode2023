@@ -1,5 +1,6 @@
 module AdventOfCode.Twenty23.Util
   ( lines
+  , modify
   , sumMap
   , testParser
   , to2dArray
@@ -13,10 +14,14 @@ import Data.Either (Either(..))
 import Data.String (split)
 import Data.String.CodeUnits (toCharArray)
 import Data.String.Pattern (Pattern(..))
+import Data.Symbol (class IsSymbol)
 import Effect.Aff (Error)
 import Parsing (Parser, runParser)
 import PointFree ((<..))
+import Prim.Row (class Cons)
+import Record as Rec
 import Test.Spec.Assertions (shouldEqual)
+import Type.Proxy (Proxy(..))
 
 sumMap :: forall a. (a -> Int) -> Array a -> Int
 sumMap = foldl add 0 <.. map
@@ -26,6 +31,16 @@ to2dArray = map toCharArray <<< lines
 
 lines :: String -> Array String
 lines = split (Pattern "\n")
+
+modify
+  :: forall @l r1 r2 r a b
+   . IsSymbol l
+  => Cons l a r r1
+  => Cons l b r r2
+  => (a -> b)
+  -> Record r1
+  -> Record r2
+modify = Rec.modify (Proxy :: _ l)
 
 testParser
   :: forall m a
