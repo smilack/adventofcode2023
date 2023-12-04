@@ -6,6 +6,9 @@ module AdventOfCode.Twenty23.Four
   , value
   , points
   , solve1
+  , Card2
+  , parseCard2s
+  , parseCard2
   ) where
 
 import AdventOfCode.Twenty23.Util
@@ -75,3 +78,25 @@ solve1 :: String -> Int
 solve1 input = case runParser input parseCards of
   Left _ -> 0
   Right cards -> sum $ map value cards
+
+type Card2 = { id :: Int, have :: Array Int, winners :: Array Int, copies :: Int }
+
+parseCard2s :: Parser String (Array Card2)
+parseCard2s = many parseCard2
+
+parseCard2 :: Parser String Card2
+parseCard2 = do
+  skipSpaces
+  _ <- string "Card"
+  skipSpaces
+  id <- intDecimal
+  _ <- string ":"
+  have <- many do
+    skipSpaces
+    intDecimal
+  skipSpaces
+  _ <- string "|"
+  winners <- many do
+    skipSpaces
+    intDecimal
+  pure { id, have, winners, copies: 1 }

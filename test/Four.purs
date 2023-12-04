@@ -46,7 +46,17 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       it "solve1" do
         solve1 input1 `shouldEqual` 13
     describe "Part 2" do
-      pending "more stuff"
+      it "parseCard2" do
+        testParser
+          "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53"
+          { id: 1
+          , have: [ 41, 48, 83, 86, 17 ]
+          , winners: [ 83, 86, 6, 31, 17, 9, 48, 53 ]
+          , copies: 1
+          }
+          parseCard2
+      it "parseCard2s" do
+        testParser input1 parsed2 parseCard2s
 
 input1 :: String
 input1 =
@@ -65,4 +75,14 @@ parsed1 =
   , { have: [ 41, 92, 73, 84, 69 ], winners: [ 59, 84, 76, 51, 58, 5, 54, 83 ] }
   , { have: [ 87, 83, 26, 28, 32 ], winners: [ 88, 30, 70, 12, 93, 22, 82, 36 ] }
   , { have: [ 31, 18, 13, 56, 72 ], winners: [ 74, 77, 10, 23, 35, 67, 36, 11 ] }
+  ]
+
+parsed2 :: Array Card2
+parsed2 =
+  [ { id: 1, have: [ 41, 48, 83, 86, 17 ], winners: [ 83, 86, 6, 31, 17, 9, 48, 53 ], copies: 1 }
+  , { id: 2, have: [ 13, 32, 20, 16, 61 ], winners: [ 61, 30, 68, 82, 17, 32, 24, 19 ], copies: 1 }
+  , { id: 3, have: [ 1, 21, 53, 59, 44 ], winners: [ 69, 82, 63, 72, 16, 21, 14, 1 ], copies: 1 }
+  , { id: 4, have: [ 41, 92, 73, 84, 69 ], winners: [ 59, 84, 76, 51, 58, 5, 54, 83 ], copies: 1 }
+  , { id: 5, have: [ 87, 83, 26, 28, 32 ], winners: [ 88, 30, 70, 12, 93, 22, 82, 36 ], copies: 1 }
+  , { id: 6, have: [ 31, 18, 13, 56, 72 ], winners: [ 74, 77, 10, 23, 35, 67, 36, 11 ], copies: 1 }
   ]
