@@ -3,19 +3,15 @@ module Test.AdventOfCode.Twenty23.Three
   , main
   ) where
 
-import AdventOfCode.Twenty23.Three
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Three (Location, gearRatio, includes, locateStars, region, solve1, solve2, symbolInRegion)
+import AdventOfCode.Twenty23.Util (testParser, to2dArray)
 import Prelude
 
-import Data.String (split)
 import Data.String.CodeUnits (toCharArray)
-import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
@@ -33,7 +29,18 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       it "Finds sum of numbers adjacent to symbols" do
         solve1 input1 `shouldEqual` 4361
     describe "Part 2" do
-      pending "more stuff"
+      it "Calculates gear ratio" do
+        gearRatio [ { number: 467 }, { number: 35 }, { number: 617 } ] `shouldEqual` 0
+        gearRatio [ { number: 467 }, { number: 35 } ] `shouldEqual` 16345
+        gearRatio [ { number: 617 } ] `shouldEqual` 0
+        gearRatio [] `shouldEqual` 0
+      it "Determines if Point is in Location" do
+        includes { line: 1, column: 3 } loc1 `shouldEqual` true
+        includes { line: 1, column: 3 } loc2 `shouldEqual` false
+      it "Finds stars" do
+        testParser input1 [ { line: 1, column: 3 }, { line: 4, column: 3 }, { line: 8, column: 5 } ] locateStars
+      it "Solves part 2" do
+        solve2 input1 `shouldEqual` 467835
 
 input1 :: String
 input1 =
@@ -42,8 +49,8 @@ input1 =
 ..35..633.
 ......#...
 617*......
-.......58.
-.-592.....
+.....+.58.
+..592.....
 ......755.
 ...$.*....
 .664.598.."""

@@ -1,24 +1,26 @@
 module AdventOfCode.Twenty23.Three
   ( Location
+  , gearRatio
+  , includes
+  , locateStars
   , main
   , parseInput1
   , region
   , solve1
+  , solve2
   , symbolInRegion
   ) where
 
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Util (to2dArray)
 import Prelude
 
 import Data.Array (any, concatMap, filter, foldl, slice)
 import Data.CodePoint.Unicode (isDecDigit)
 import Data.Either (Either(..))
 import Data.Foldable (sum)
-import Data.Newtype (unwrap)
 import Data.Ord (abs)
-import Data.String (codePointAt, codePointFromChar, split)
+import Data.String (codePointFromChar)
 import Data.String as String
-import Data.String.Pattern (Pattern(..))
 import Data.Tuple (snd)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
@@ -28,7 +30,7 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
 import Parsing (Parser, Position(..), position, runParser)
 import Parsing.Combinators.Array (many)
-import Parsing.String (anyTill)
+import Parsing.String (anyTill, char)
 import Parsing.String.Basic (intDecimal)
 
 main :: Effect Unit
@@ -39,9 +41,8 @@ main = launchAff_ do
     log "Sum of numbers adjacent to symbols"
     logShow $ solve1 input
     log "Part2:"
-
--- log ""
--- logShow $ solve2 input
+    log "Sum of (product of pairs of numbers adjacent to *)"
+    logShow $ solve2 input
 
 type Point = { line :: Int, column :: Int }
 
@@ -94,3 +95,31 @@ solve1 input = case runParser input parseInput1 of
       $ filter (symbolInRegion <<< (region chars)) numbers
   where
   chars = to2dArray input
+
+locateStars :: Parser String (Array Point)
+locateStars = many locateStar
+  where
+  locateStar = do
+    _ <- anyTill $ char '*'
+    p <- position >>= \(Position p) -> pure p
+    pure { line: p.line - 1, column: p.column - 2 }
+
+solve2 :: String -> Int
+solve2 input = case runParser input parseInput1 of
+  Left _ -> 0
+  Right numbers ->
+    case runParser input locateStars of
+      Left _ -> 0
+      Right stars ->
+        sum $ map (gearRatio <<< \s -> filter (includes s) numbers) $ stars
+
+includes :: Point -> Location -> Boolean
+includes p l = (betweenCols p.column) && (betweenLines p.line)
+  where
+  betweenCols = between (l.column - 1) (l.column + l.length)
+  betweenLines = between (l.line - 1) (l.line + 1)
+
+gearRatio :: forall r. Array { number :: Int | r } -> Int
+gearRatio = case _ of
+  [ l1, l2 ] -> l1.number * l2.number
+  _ -> 0
