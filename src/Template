@@ -4,14 +4,14 @@ module AdventOfCode.Twenty23.$DAY
 
 import Prelude
 import AdventOfCode.Twenty23.Util
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
+
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
+import Parsing (Parser)
 
 main :: Effect Unit
 main = launchAff_ do
