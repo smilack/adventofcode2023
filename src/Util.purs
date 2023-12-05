@@ -1,6 +1,7 @@
 module AdventOfCode.Twenty23.Util
   ( lines
   , modify
+  , skip
   , sumMap
   , testParser
   , to2dArray
@@ -17,6 +18,7 @@ import Data.String.Pattern (Pattern(..))
 import Data.Symbol (class IsSymbol)
 import Effect.Aff (Error)
 import Parsing (Parser, runParser)
+import Parsing.String (string)
 import PointFree ((<..))
 import Prim.Row (class Cons)
 import Record as Rec
@@ -31,6 +33,13 @@ to2dArray = map toCharArray <<< lines
 
 lines :: String -> Array String
 lines = split (Pattern "\n")
+
+skip :: String -> Parser String Unit
+skip = string >=> const (pure unit)
+
+-- do
+--   _ <- string s
+--   pure unit
 
 modify
   :: forall @l r1 r2 r a b
