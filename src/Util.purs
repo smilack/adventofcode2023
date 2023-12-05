@@ -43,10 +43,10 @@ skip = string >=> const (pure unit)
 -- `between' 10 1 x` is like `x in [10]`
 -- `between' 10 2 x` is like `x in [10, 11]`
 -- `between' 10 5 x` is like `x in [10, 11, 12, 13, 14]`
-between' :: Int -> Int -> Int -> Boolean
+between' :: forall a. Ord a => Ring a => a -> a -> a -> Boolean
 between' start length
-  | length <= 0 = const false
-  | otherwise = between start (start + length - 1)
+  | length <= zero = const false
+  | otherwise = between start (start + length - one)
 
 modify
   :: forall @l r1 r2 r a b
