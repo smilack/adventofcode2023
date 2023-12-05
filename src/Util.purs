@@ -1,5 +1,6 @@
 module AdventOfCode.Twenty23.Util
-  ( lines
+  ( between'
+  , lines
   , modify
   , skip
   , sumMap
@@ -37,9 +38,15 @@ lines = split (Pattern "\n")
 skip :: String -> Parser String Unit
 skip = string >=> const (pure unit)
 
--- do
---   _ <- string s
---   pure unit
+-- Test if a number is within `length` numbers of `start`. `start` counts as 1
+-- `between' 10 0 x` is like `x in []`
+-- `between' 10 1 x` is like `x in [10]`
+-- `between' 10 2 x` is like `x in [10, 11]`
+-- `between' 10 5 x` is like `x in [10, 11, 12, 13, 14]`
+between' :: Int -> Int -> Int -> Boolean
+between' start length
+  | length <= 0 = const false
+  | otherwise = between start (start + length - 1)
 
 modify
   :: forall @l r1 r2 r a b
