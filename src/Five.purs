@@ -17,9 +17,11 @@ module AdventOfCode.Twenty23.Five
   , name
   , parseMaps
   , seedParser
+  , seedParser2
   , mkOneMapping
   , parseOneMapping
   , solve1
+  , solve2
   , mkMap
   ) where
 
@@ -27,7 +29,7 @@ import AdventOfCode.Twenty23.Util
 import Prelude
 
 import Data.Array (findMap, head)
-import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty (NonEmptyArray, concat, fromArray, range)
 import Data.Either (Either(..), fromRight)
 import Data.Function (applyFlipped)
 import Data.Maybe (Maybe(..), fromMaybe)
@@ -56,9 +58,32 @@ main = launchAff_ do
     log "Lowest location number:"
     logShow $ solve1 input
     log "Part2:"
+    log "Lowest location number:"
+    logShow $ solve2 input
 
--- log ""
--- logShow $ solve2 input
+solve2 :: String -> Number
+solve2 input =
+  case result of
+    Left er -> trace er (const 0.0)
+    Right n -> n
+  where
+  result = do
+    seeds <- runParser input seedParser2
+    almanac <- runParser input parseMaps
+    let
+      locations = map (unwrap <<< almanac) seeds
+    pure $ minimum locations
+
+seedParser2 :: Parser String (NonEmptyArray (Id Seed))
+seedParser2 = do
+  skip "seeds:"
+  ranges <- many1 do
+    skipSpaces
+    start <- number
+    skipSpaces
+    length <- number
+    pure $ range' start length
+  pure $ map Id $ concat ranges
 
 solve1 :: String -> Number
 solve1 input =

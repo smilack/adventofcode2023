@@ -6,7 +6,7 @@ import AdventOfCode.Twenty23.Five
 import AdventOfCode.Twenty23.Util
 import Prelude
 
-import Data.Array.NonEmpty (cons, cons')
+import Data.Array.NonEmpty (cons, cons', prependArray)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
 import Data.String (split)
@@ -59,7 +59,18 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       it "solves part 1" do
         solve1 input `shouldEqual` 35.0
     describe "Part 2" do
-      pending "more stuff"
+      it "parses seeds" do
+        testParser
+          input
+          ( map Id
+              $ prependArray
+                  [ 79.0, 80.0, 81.0, 82.0, 83.0, 84.0, 85.0, 86.0, 87.0, 88.0, 89.0, 90.0, 91.0, 92.0 ]
+              $ cons' 55.0
+                  [ 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0 ]
+          )
+          seedParser2
+      it "solves part 2" do
+        solve2 input `shouldEqual` 46.0
 
 input :: String
 input =
