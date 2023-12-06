@@ -2,22 +2,18 @@ module Test.AdventOfCode.Twenty23.Five
   ( main
   ) where
 
-import AdventOfCode.Twenty23.Five
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Five (Id(..), Light, Seed, Soil, Temperature, Water, mapName, mapParser, mkMap, mkOneMapping, parseMaps, seedParser, seedParser2, solve1, solve2)
+import AdventOfCode.Twenty23.Util (testParser)
 import Prelude
 
-import Data.Array.NonEmpty (cons, cons', prependArray)
+import Data.Array.NonEmpty (cons', prependArray)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Parsing (runParser)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, describe, it, itOnly, pending, pending')
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (fail, shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 

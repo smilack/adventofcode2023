@@ -25,19 +25,16 @@ module AdventOfCode.Twenty23.Five
   , mkMap
   ) where
 
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Util (between', range', skip)
 import Prelude
 
-import Data.Array (findMap, head)
-import Data.Array.NonEmpty (NonEmptyArray, concat, fromArray, range)
-import Data.Either (Either(..), fromRight)
-import Data.Function (applyFlipped)
+import Data.Array.NonEmpty (NonEmptyArray, concat)
+import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap)
-import Data.Reflectable (reflectType)
 import Data.Semigroup.Foldable (minimum)
-import Data.Traversable (oneOf, sequence)
-import Debug (spy, trace)
+import Data.Traversable (oneOf)
+import Debug (trace)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
@@ -45,10 +42,9 @@ import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
 import Parsing (Parser, runParser)
-import Parsing.Combinators.Array (many, many1)
+import Parsing.Combinators.Array (many1)
 import Parsing.String (anyTill, string)
 import Parsing.String.Basic (number, skipSpaces)
-import Type.Proxy (Proxy(..))
 
 main :: Effect Unit
 main = launchAff_ do
