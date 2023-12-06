@@ -120,10 +120,10 @@ seedParser = do
 mapParser :: forall @f @t. Reflect f => Reflect t => Parser String (Map f t)
 mapParser = do
   _ <- anyTill $ string $ mapName @f @t
-  mappings <- many parseOneMapping
+  mappings <- many1 parseOneMapping
   pure $ mkMap mappings
 
-mkMap :: forall @f @t. Reflect f => Reflect t => Array Mapping -> Map f t
+mkMap :: forall @f @t. Reflect f => Reflect t => NonEmptyArray Mapping -> Map f t
 mkMap mappings (Id a) = Id @t $ fromMaybe a $ oneOf $ flap mappings a
 
 mapName :: forall @f @t. Reflect f => Reflect t => String

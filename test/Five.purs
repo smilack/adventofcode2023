@@ -39,9 +39,7 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         (mkOneMapping 52.0 50.0 48.0) 79.0 `shouldEqual` Just 81.0
       it "makes maps" do
         mkMap @Seed @Soil
-          [ (mkOneMapping 50.0 98.0 2.0)
-          , (mkOneMapping 52.0 50.0 48.0)
-          ]
+          (cons' (mkOneMapping 50.0 98.0 2.0) [ (mkOneMapping 52.0 50.0 48.0) ])
           (Id 79.0)
           `shouldEqual`
             (Id 81.0)
