@@ -2,6 +2,7 @@ module AdventOfCode.Twenty23.Util
   ( between'
   , lines
   , modify
+  , range'
   , skip
   , sumMap
   , testParser
@@ -11,7 +12,8 @@ module AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Monad.Error.Class (class MonadThrow)
-import Data.Array (foldl)
+import Data.Array (cons, foldl)
+import Data.Array.NonEmpty (NonEmptyArray, cons')
 import Data.Either (Either(..))
 import Data.String (split)
 import Data.String.CodeUnits (toCharArray)
@@ -47,6 +49,13 @@ between' :: forall a. Ord a => Ring a => a -> a -> a -> Boolean
 between' start length
   | length <= zero = const false
   | otherwise = between start (start + length - one)
+
+range' :: forall a. Ord a => Ring a => a -> a -> NonEmptyArray a
+range' start length = cons' start $ go (start + one) (length - one)
+  where
+  go n l
+    | l <= zero = []
+    | otherwise = cons n $ go (n + one) (l - one)
 
 modify
   :: forall @l r1 r2 r a b
