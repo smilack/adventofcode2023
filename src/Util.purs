@@ -13,7 +13,7 @@ import Prelude
 
 import Control.Monad.Error.Class (class MonadThrow)
 import Data.Array (cons, foldl)
-import Data.Array.NonEmpty (NonEmptyArray, cons')
+import Data.Array.NonEmpty (NonEmptyArray, cons', singleton, snoc)
 import Data.Either (Either(..))
 import Data.String (split)
 import Data.String.CodeUnits (toCharArray)
@@ -51,11 +51,11 @@ between' start length
   | otherwise = between start (start + length - one)
 
 range' :: forall a. Ord a => Ring a => a -> a -> NonEmptyArray a
-range' start length = cons' start $ go (start + one) (length - one)
+range' start length = go (singleton start) (start + one) (length - one)
   where
-  go n l
-    | l <= zero = []
-    | otherwise = cons n $ go (n + one) (l - one)
+  go a n l
+    | l <= zero = a
+    | otherwise = go (snoc a n) (n + one) (l - one)
 
 modify
   :: forall @l r1 r2 r a b
