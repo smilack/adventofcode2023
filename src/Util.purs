@@ -1,5 +1,7 @@
 module AdventOfCode.Twenty23.Util
   ( between'
+  , dec
+  , inc
   , lines
   , modify
   , range'
@@ -56,6 +58,12 @@ range' start length = go (singleton start) (start + one) (length - one)
   go a n l
     | l <= zero = a
     | otherwise = go (snoc a n) (n + one) (l - one)
+
+inc :: forall a. Semiring a => a -> a
+inc = add one
+
+dec :: forall a. Ring a => a -> a
+dec = sub one
 
 modify
   :: forall @l r1 r2 r a b
