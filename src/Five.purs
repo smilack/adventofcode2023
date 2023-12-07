@@ -23,25 +23,30 @@ module AdventOfCode.Twenty23.Five
   , solve1
   , solve2
   , mkMap
+  , Map2
+  , Range
+  , SeedRange
+  , contains
+  , validSeed
+  , seedRangeParser
   ) where
 
-import AdventOfCode.Twenty23.Util (between', range', skip)
 import Prelude
 
-import Data.Array.NonEmpty (NonEmptyArray, concat)
-import Data.Either (Either(..))
+import AdventOfCode.Twenty23.Util (between', inc, range', skip)
+import Data.Array.NonEmpty (NonEmptyArray, any, concat)
+import Data.Either (Either)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (class Newtype, unwrap)
+import Data.Newtype (class Newtype, modify, unwrap)
 import Data.Semigroup.Foldable (minimum)
 import Data.Traversable (oneOf)
-import Debug (trace)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (Parser, runParser)
+import Parsing (ParseError, Parser, runParser)
 import Parsing.Combinators.Array (many1)
 import Parsing.String (anyTill, string)
 import Parsing.String.Basic (number, skipSpaces)
@@ -57,18 +62,26 @@ main = launchAff_ do
     log "Lowest location number:"
     logShow $ solve2 input
 
-solve2 :: String -> Number
-solve2 input =
-  case result of
-    Left er -> trace er (const 0.0)
-    Right n -> n
+solve2 :: String -> Either ParseError Number
+solve2 input = do
+  seeds <- runParser input seedRangeParser
+  almanac <- runParser input parseMapsR
+  pure $ search (Id 0.0) seeds almanac
   where
-  result = do
-    seeds <- runParser input seedParser2
-    almanac <- runParser input parseMaps
-    let
-      locations = map (unwrap <<< almanac) seeds
-    pure $ minimum locations
+  search :: Id Location -> NonEmptyArray SeedRange -> Map Location Seed -> Number
+  search loc seeds almanac
+    | validSeed (almanac loc) seeds = unwrap loc
+    | otherwise = search (modify inc loc) seeds almanac
+
+seedRangeParser :: Parser String (NonEmptyArray SeedRange)
+seedRangeParser = do
+  skip "seeds:"
+  many1 do
+    skipSpaces
+    start <- number
+    skipSpaces
+    len <- number
+    pure { start, len }
 
 seedParser2 :: Parser String (NonEmptyArray (Id Seed))
 seedParser2 = do
@@ -81,18 +94,40 @@ seedParser2 = do
     pure $ range' start length
   pure $ map Id $ concat ranges
 
-solve1 :: String -> Number
-solve1 input =
-  case result of
-    Left er -> trace er (const 0.0)
-    Right n -> n
-  where
-  result = do
-    seeds <- runParser input seedParser
-    almanac <- runParser input parseMaps
-    let
-      locations = map (unwrap <<< almanac) seeds
-    pure $ minimum locations
+solve1 :: String -> Either ParseError Number
+solve1 input = do
+  seeds <- runParser input seedParser
+  almanac <- runParser input parseMaps
+  let
+    locations = map (unwrap <<< almanac) seeds
+  pure $ minimum locations
+
+type Map2 :: GardenKind -> GardenKind -> Type
+type Map2 a b = NonEmptyArray (Range a b)
+
+type Range :: GardenKind -> GardenKind -> Type
+type Range a b = { source :: Id a, dest :: Id b, len :: Number }
+
+type SeedRange = { start :: Number, len :: Number }
+
+contains :: Number -> SeedRange -> Boolean
+contains a { start, len } = between' start len a
+
+validSeed :: Id Seed -> NonEmptyArray SeedRange -> Boolean
+validSeed = any <<< contains <<< unwrap
+
+-- type Transformation = { start :: Number, len :: Number, change :: Number }
+
+-- transform 
+
+-- combinable :: forall a b. Range a b -> Range a b -> Boolean
+-- combinable a b = adjacent a b || overlapping a b
+
+-- overlapping :: forall a b. Range a b -> Range a b -> Boolean
+-- overlapping a b =
+
+-- adjacent :: forall a b. Range a b -> Range a b -> Boolean
+-- a b =
 
 type Map :: GardenKind -> GardenKind -> Type
 type Map a b = Id a -> Id b
@@ -119,6 +154,12 @@ mapParser = do
   mappings <- many1 parseOneMapping
   pure $ mkMap mappings
 
+mapParserR :: forall @f @t. Reflect f => Reflect t => Parser String (Map f t)
+mapParserR = do
+  _ <- anyTill $ string $ mapName @t @f
+  mappings <- many1 parseOneMappingR
+  pure $ mkMap mappings
+
 mkMap :: forall @f @t. Reflect f => Reflect t => NonEmptyArray Mapping -> Map f t
 mkMap mappings (Id a) = Id @t $ fromMaybe a $ oneOf $ flap mappings a
 
@@ -136,6 +177,16 @@ parseOneMapping = do
   skipSpaces
   rangeLength <- number
   pure $ mkOneMapping destStart sourceStart rangeLength
+
+parseOneMappingR :: Parser String Mapping
+parseOneMappingR = do
+  skipSpaces
+  destStart <- number
+  skipSpaces
+  sourceStart <- number
+  skipSpaces
+  rangeLength <- number
+  pure $ mkOneMapping sourceStart destStart rangeLength
 
 mkOneMapping :: Number -> Number -> Number -> Number -> Maybe Number
 mkOneMapping destStart sourceStart rangeLength test =
@@ -161,6 +212,25 @@ parseMaps = do
         >>> t
         >>> h
         >>> o
+    )
+
+parseMapsR :: Parser String (Map Location Seed)
+parseMapsR = do
+  s <- mapParserR @Soil @Seed
+  f <- mapParserR @Fertilizer @Soil
+  w <- mapParserR @Water @Fertilizer
+  l <- mapParserR @Light @Water
+  t <- mapParserR @Temperature @Light
+  h <- mapParserR @Humidity @Temperature
+  o <- mapParserR @Location @Humidity
+  pure
+    ( s
+        <<< f
+        <<< w
+        <<< l
+        <<< t
+        <<< h
+        <<< o
     )
 
 -------------------------

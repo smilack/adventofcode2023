@@ -2,10 +2,10 @@ module Test.AdventOfCode.Twenty23.Five
   ( main
   ) where
 
-import AdventOfCode.Twenty23.Five (Id(..), Light, Seed, Soil, Temperature, Water, mapName, mapParser, mkMap, mkOneMapping, parseMaps, seedParser, seedParser2, solve1, solve2)
-import AdventOfCode.Twenty23.Util (testParser)
 import Prelude
 
+import AdventOfCode.Twenty23.Five (Id(..), Light, Seed, Soil, Temperature, Water, contains, mapName, mapParser, mkMap, mkOneMapping, parseMaps, seedParser, seedParser2, seedRangeParser, solve1, solve2, validSeed)
+import AdventOfCode.Twenty23.Util (testParser)
 import Data.Array.NonEmpty (cons', prependArray)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
@@ -51,7 +51,7 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
             almanac (Id 55.0) `shouldEqual` Id 86.0
             almanac (Id 13.0) `shouldEqual` Id 35.0
       it "solves part 1" do
-        solve1 input `shouldEqual` 35.0
+        solve1 input `shouldEqual` (Right 35.0)
     describe "Part 2" do
       it "parses seeds" do
         testParser
@@ -63,8 +63,31 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
                   [ 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0, 63.0, 64.0, 65.0, 66.0, 67.0 ]
           )
           seedParser2
+      it "parses seed ranges" do
+        let
+          neasr = cons' { start: 79.0, len: 14.0 }
+            [ { start: 55.0, len: 13.0 } ]
+        testParser input neasr seedRangeParser
+      describe "checks if seeds exist" do
+        it "0.0 in { start: 0.0, len: 10.0 }" do
+          contains 0.0 { start: 0.0, len: 10.0 } `shouldEqual` true
+        it "9.0 in { start: 0.0, len: 10.0 }" do
+          contains 9.0 { start: 0.0, len: 10.0 } `shouldEqual` true
+        it "10.0 in { start: 0.0, len: 10.0 }" do
+          contains 10.0 { start: 0.0, len: 10.0 } `shouldEqual` false
+        let
+          neasr = cons' { start: 11.0, len: 9.0 }
+            [ { start: 21.0, len: 9.0 }
+            , { start: 0.0, len: 10.0 }
+            ]
+        it "0.0 valid" do
+          validSeed (Id 0.0) neasr `shouldEqual` true
+        it "9.0 valid" do
+          validSeed (Id 9.0) neasr `shouldEqual` true
+        it "10.0 valid" do
+          validSeed (Id 10.0) neasr `shouldEqual` false
       it "solves part 2" do
-        solve2 input `shouldEqual` 46.0
+        solve2 input `shouldEqual` (Right 46.0)
 
 input :: String
 input =
