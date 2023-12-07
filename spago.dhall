@@ -31,6 +31,7 @@ to generate this file without the comments in this block.
   , "parsing"
   , "point-free"
   , "prelude"
+  , "profunctor-lenses"
   , "quickcheck"
   , "record"
   , "spec"
