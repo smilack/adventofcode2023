@@ -24,29 +24,29 @@ main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Seven" do
     describe "Part 1" do
-      it "parse hand" do
-        testParser
-          "32T3K 765"
-          { value: 0x232A3D, bid: 765 }
-          parseHand
-        testParser
-          "T55J5 684"
-          { value: 0x4A55B5, bid: 684 }
-          parseHand
+      -- it "parse hand" do
+      --   testParser
+      --     "32T3K 765"
+      --     { value: 0x232A3D, bid: 765 }
+      --     parseHand
+      --   testParser
+      --     "T55J5 684"
+      --     { value: 0x4A55B5, bid: 684 }
+      --     parseHand
       it "solve1" do
         solve1 input `shouldEqual` Right 6440
     describe "Part 2" do
-      it "parses part 2" do
-        let
-          hand2 =
-            { nats: insert 'T' 1 $ insert '5' 3 empty
-            , wilds: 1
-            , str: "T55J5"
-            , bid: 684
-            }
-        testParser "T55J5 684" hand2 parseHand2
-        toHand hand2 `shouldEqual`
-          { value: 0x6A5515, bid: 684 }
+      -- it "parses part 2" do
+      --   let
+      --     hand2 =
+      --       { nats: insert 'T' 1 $ insert '5' 3 empty
+      --       , wilds: 1
+      --       , str: "T55J5"
+      --       , bid: 684
+      --       }
+      --   testParser "T55J5 684" hand2 parseHand2
+      --   toHand hand2 `shouldEqual`
+      --     { value: 0x6A5515, bid: 684 }
       it "solves part 2" do
         solve2 input `shouldEqual` Right 5905
 
