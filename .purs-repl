@@ -1,6 +1,6 @@
 import Prelude
 import Parsing (runParser)
 import Data.Array (filter)
-import AdventOfCode.Twenty23.Three
+import AdventOfCode.Twenty23.Six
 import AdventOfCode.Twenty23.Util
-import Test.AdventOfCode.Twenty23.Three
+import Test.AdventOfCode.Twenty23.Six
