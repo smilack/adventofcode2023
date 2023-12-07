@@ -1,6 +1,7 @@
 module AdventOfCode.Twenty23.Util
   ( between'
   , dec
+  , hSqrt
   , inc
   , lines
   , modify
@@ -58,6 +59,14 @@ range' start length = go (singleton start) (start + one) (length - one)
   go a n l
     | l <= zero = a
     | otherwise = go (snoc a n) (n + one) (l - one)
+
+-- heron's formula for sqrt of any euclidean ring
+hSqrt :: forall a. Eq a => EuclideanRing a => a -> a
+hSqrt n = go one zero
+  where
+  go i prev
+    | i == prev = i
+    | otherwise = go ((i + n / i) / (one + one)) i
 
 inc :: forall a. Semiring a => a -> a
 inc = add one
