@@ -1,6 +1,7 @@
 module AdventOfCode.Twenty23.Util
   ( between'
   , dec
+  , genericParser
   , hSqrt
   , inc
   , lines
@@ -21,6 +22,7 @@ import Control.Monad.Error.Class (class MonadThrow)
 import Data.Array (foldl)
 import Data.Array.NonEmpty (NonEmptyArray, singleton, snoc)
 import Data.Either (Either(..))
+import Data.Enum (class BoundedEnum, enumFromTo)
 import Data.String (split)
 import Data.String.CodeUnits (toCharArray)
 import Data.String.Pattern (Pattern(..))
@@ -131,3 +133,9 @@ oneOf' p xs = choice parsers <|> fail err
   parser (Tuple c x) = try (p c $> x)
   cs = map fst xs
   err = "Expected one of " <> show cs
+
+genericParser :: forall @a. BoundedEnum a => Show a => Parser String a
+genericParser = oneOfString $ map (\a -> Tuple (show a) a) as
+  where
+  as :: Array a
+  as = enumFromTo bottom top

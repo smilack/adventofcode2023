@@ -1,11 +1,15 @@
 module Test.AdventOfCode.Twenty23.Util
-  ( main
+  ( Foo(..)
+  , main
   ) where
 
 import AdventOfCode.Twenty23.Util
 import Prelude
 
+import Data.Bounded.Generic (genericBottom, genericTop)
 import Data.Either (isLeft)
+import Data.Enum (class BoundedEnum, class Enum)
+import Data.Enum.Generic (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep (class Generic)
 import Data.Show.Generic (genericShow)
 import Data.Tuple (Tuple(..))
@@ -36,10 +40,30 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         testParser "C" C $ oneOfString foosS
       it "oneOfString error" $ do
         (runParser "D" $ oneOfString foosS) `shouldSatisfy` isLeft
+      it "genericParser" $ do
+        testParser "A" A $ genericParser @Foo
+        testParser "B" B $ genericParser @Foo
+        testParser "C" C $ genericParser @Foo
+      it "genericParser error" $ do
+        (runParser "D" $ genericParser @Foo) `shouldSatisfy` isLeft
 
 data Foo = A | B | C
 
 derive instance Eq Foo
+derive instance Ord Foo
 derive instance Generic Foo _
 instance Show Foo where
   show = genericShow
+
+instance Enum Foo where
+  succ = genericSucc
+  pred = genericPred
+
+instance Bounded Foo where
+  top = genericTop
+  bottom = genericBottom
+
+instance BoundedEnum Foo where
+  cardinality = genericCardinality
+  toEnum = genericToEnum
+  fromEnum = genericFromEnum
