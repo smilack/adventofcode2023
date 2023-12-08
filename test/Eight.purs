@@ -6,14 +6,22 @@ import AdventOfCode.Twenty23.Eight
 import AdventOfCode.Twenty23.Util
 import Prelude
 
-import Data.Either (isLeft)
+import Control.Alt ((<|>))
+import Data.Array.NonEmpty (cons')
+import Data.Either (isLeft, isRight)
+import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
+import Data.Show.Generic (genericShow)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst)
+import Data.Unfoldable1 (class Unfoldable1)
+import Data.Unfoldable1 (iterateN) as Unf
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Parsing (runParser)
+import Parsing (Parser, runParser)
+import Parsing.Combinators ((<?>))
+import Parsing.String (char)
 import Test.QuickCheck ((===), Result)
 import Test.Spec (Spec, pending, describe, it)
 import Test.Spec.Assertions (expectError, fail, shouldEqual, shouldSatisfy)
@@ -25,7 +33,19 @@ main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Eight" do
     describe "Part 1" do
-      pending "parse input"
+      let
+        path1 = mkPath (cons' R [ L ])
+        path2 = mkPath (cons' L [ L, R ])
+      describe "Makes paths" do
+        it "parsePath succeeds" do
+          runParser example1 parsePath `shouldSatisfy` isRight
+          runParser example2 parsePath `shouldSatisfy` isRight
+        it "shows paths" do
+          show path1 `shouldEqual` "RLRLRLRLRL..."
+          show path2 `shouldEqual` "LLRLLRLLRL..."
+        it "generates paths" do
+          iteratePath 5 path1 `shouldEqual` [ R, L, R, L, R ]
+          iteratePath 5 path2 `shouldEqual` [ L, L, R, L, L ]
       pending "other stuff"
     describe "Part 2" do
       pending "more stuff"

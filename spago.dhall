@@ -41,6 +41,7 @@ to generate this file without the comments in this block.
   , "stringutils"
   , "transformers"
   , "tuples"
+  , "unfoldable"
   , "unicode"
   ]
 , packages = ./packages.dhall
