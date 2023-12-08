@@ -5,6 +5,9 @@ module AdventOfCode.Twenty23.Util
   , inc
   , lines
   , modify
+  , oneOf'
+  , oneOfChar
+  , oneOfString
   , range'
   , skip
   , sumMap
@@ -15,16 +18,19 @@ module AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Monad.Error.Class (class MonadThrow)
-import Data.Array (cons, foldl)
-import Data.Array.NonEmpty (NonEmptyArray, cons', singleton, snoc)
+import Data.Array (foldl)
+import Data.Array.NonEmpty (NonEmptyArray, singleton, snoc)
 import Data.Either (Either(..))
 import Data.String (split)
 import Data.String.CodeUnits (toCharArray)
 import Data.String.Pattern (Pattern(..))
 import Data.Symbol (class IsSymbol)
+import Data.Traversable (class Traversable)
+import Data.Tuple (Tuple(..), fst)
 import Effect.Aff (Error)
-import Parsing (Parser, runParser)
-import Parsing.String (string)
+import Parsing (Parser, fail, runParser)
+import Parsing.Combinators (choice, try, (<|>))
+import Parsing.String (char, string)
 import PointFree ((<..))
 import Prim.Row (class Cons)
 import Record as Rec
@@ -96,3 +102,32 @@ testParser
 testParser input expected parser =
   runParser input parser `shouldEqual` Right expected
 
+oneOfChar
+  :: forall a t
+   . Traversable t
+  => Show (t Char)
+  => t (Tuple Char a)
+  -> Parser String a
+oneOfChar = oneOf' char
+
+oneOfString
+  :: forall a t
+   . Traversable t
+  => Show (t String)
+  => t (Tuple String a)
+  -> Parser String a
+oneOfString = oneOf' string
+
+oneOf'
+  :: forall a1 a2 s t
+   . Traversable t
+  => Show (t a1)
+  => (a1 -> Parser s a1)
+  -> t (Tuple a1 a2)
+  -> Parser s a2
+oneOf' p xs = choice parsers <|> fail err
+  where
+  parsers = map parser xs
+  parser (Tuple c x) = try (p c $> x)
+  cs = map fst xs
+  err = "Expected one of " <> show cs
