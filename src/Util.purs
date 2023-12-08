@@ -30,8 +30,8 @@ import Data.Symbol (class IsSymbol)
 import Data.Traversable (class Traversable)
 import Data.Tuple (Tuple(..), fst)
 import Effect.Aff (Error)
-import Parsing (Parser, fail, runParser)
-import Parsing.Combinators (choice, try, (<|>))
+import Parsing (Parser, runParser)
+import Parsing.Combinators (choice, try, (<?>))
 import Parsing.String (char, string)
 import PointFree ((<..))
 import Prim.Row (class Cons)
@@ -127,12 +127,12 @@ oneOf'
   => (a1 -> Parser s a1)
   -> t (Tuple a1 a2)
   -> Parser s a2
-oneOf' p xs = choice parsers <|> fail err
+oneOf' p xs = choice parsers <?> expected
   where
   parsers = map parser xs
   parser (Tuple c x) = try (p c $> x)
   cs = map fst xs
-  err = "Expected one of " <> show cs
+  expected = "one of " <> show cs
 
 genericParser :: forall @a. BoundedEnum a => Show a => Parser String a
 genericParser = oneOfString $ map (\a -> Tuple (show a) a) as
