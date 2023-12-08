@@ -17,13 +17,26 @@ import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Parsing (runParser)
 import Test.Spec (describe, it)
-import Test.Spec.Assertions (shouldSatisfy)
+import Test.Spec.Assertions (shouldEqual, shouldSatisfy)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Util" do
+    describe "dec" do
+      it "dec ints" do
+        dec 100 `shouldEqual` 99
+        dec 2 `shouldEqual` 1
+        dec 1 `shouldEqual` 0
+        dec 0 `shouldEqual` (-1)
+        dec (-100) `shouldEqual` (-101)
+      it "dec numbers" do
+        dec 100.0 `shouldEqual` 99.0
+        dec 2.0 `shouldEqual` 1.0
+        dec 1.0 `shouldEqual` 0.0
+        dec 0.0 `shouldEqual` (-1.0)
+        dec (-100.0) `shouldEqual` (-101.0)
     describe "oneOf'" do
       let
         foosS = [ Tuple "A" A, Tuple "B" B, Tuple "C" C ]

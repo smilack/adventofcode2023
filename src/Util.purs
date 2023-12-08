@@ -80,7 +80,7 @@ inc :: forall a. Semiring a => a -> a
 inc = add one
 
 dec :: forall a. Ring a => a -> a
-dec = sub one
+dec = (_ - one)
 
 modify
   :: forall @l r1 r2 r a b
