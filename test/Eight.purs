@@ -7,9 +7,9 @@ import AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Alt ((<|>))
-import Data.Array.NonEmpty (cons')
 import Data.Either (isLeft, isRight)
 import Data.Generic.Rep (class Generic)
+import Data.List.Lazy (List(..), nil, (:))
 import Data.Maybe (Maybe(..))
 import Data.Show.Generic (genericShow)
 import Data.String (split)
@@ -34,8 +34,8 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Eight" do
     describe "Part 1" do
       let
-        path1 = mkPath (cons' R [ L ])
-        path2 = mkPath (cons' L [ L, R ])
+        path1 = mkPath (R : L : nil)
+        path2 = mkPath (L : L : R : nil)
       describe "Makes paths" do
         it "parsePath succeeds" do
           runParser example1 parsePath `shouldSatisfy` isRight
@@ -43,9 +43,6 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         it "shows paths" do
           show path1 `shouldEqual` "RLRLRLRLRL..."
           show path2 `shouldEqual` "LLRLLRLLRL..."
-        it "generates paths" do
-          iteratePath 5 path1 `shouldEqual` [ R, L, R, L, R ]
-          iteratePath 5 path2 `shouldEqual` [ L, L, R, L, L ]
       pending "other stuff"
     describe "Part 2" do
       pending "more stuff"

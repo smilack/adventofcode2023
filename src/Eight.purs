@@ -4,25 +4,19 @@ module AdventOfCode.Twenty23.Eight
   , main
   , parsePath
   , mkPath
-  , iteratePath
-  , next
   ) where
 
 import AdventOfCode.Twenty23.Util
 import Prelude
 
-import Control.Alt ((<|>))
-import Data.Array (cons, foldMap)
-import Data.Array.NonEmpty (NonEmptyArray, snoc', uncons)
 import Data.Bounded.Generic (genericBottom, genericTop)
-import Data.Enum (class BoundedEnum, class Enum, cardinality, enumFromTo)
+import Data.Enum (class BoundedEnum, class Enum)
 import Data.Enum.Generic (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
-import Data.Functor (voidRight)
 import Data.Generic.Rep (class Generic)
-import Data.Maybe (Maybe(..))
+import Data.List.Lazy as Lazy
+import Data.Map (Map)
+import Data.Newtype (class Newtype, unwrap)
 import Data.Show.Generic (genericShow)
-import Data.Traversable (class Traversable)
-import Data.Tuple (Tuple(..), fst)
 import Debug (spy)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
@@ -30,11 +24,7 @@ import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (Parser, fail)
-import Parsing.Combinators (choice, try)
-import Parsing.Combinators.Array (many1)
-import Parsing.String (char, string)
-import Parsing.String.Basic (oneOf)
+import Parsing (Parser)
 
 main :: Effect Unit
 main = launchAff_ do
@@ -50,35 +40,18 @@ main = launchAff_ do
 
 data Direction = L | R
 
-newtype Path = Path (forall a. a -> Tuple Direction Path)
+newtype Path = Path (Lazy.List Direction)
 
-next :: Path -> Tuple Direction Path
-next (Path f) = f unit
-
-iteratePath :: Int -> Path -> Array Direction
-iteratePath n p
-  | n <= 0 = []
-  | otherwise =
-      let
-        (Tuple d p') = next p
-      in
-        cons d $ iteratePath (dec n) p'
+derive instance Newtype Path _
 
 instance Show Path where
-  show = (_ <> "...") <<< foldMap show <<< iteratePath 10
+  show = (_ <> "...") <<< Lazy.foldMap show <<< Lazy.take 10 <<< unwrap
 
 parsePath :: Parser String Path
-parsePath = map mkPath $ many1 $ genericParser @Direction
+parsePath = mkPath <$> Lazy.many (genericParser @Direction)
 
-mkPath :: NonEmptyArray Direction -> Path
-mkPath nea = Path
-  ( \_ ->
-      let
-        { head, tail } = uncons nea
-        nea' = snoc' tail head
-      in
-        Tuple head (mkPath nea')
-  )
+mkPath :: Lazy.List Direction -> Path
+mkPath = Path <<< Lazy.cycle
 
 derive instance Eq Direction
 derive instance Ord Direction
