@@ -7,9 +7,10 @@ import AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Alt ((<|>))
-import Data.Either (isLeft, isRight)
+import Data.Either (Either(..), isLeft, isRight)
 import Data.Generic.Rep (class Generic)
 import Data.List.Lazy (List(..), nil, (:))
+import Data.Map (isEmpty)
 import Data.Maybe (Maybe(..))
 import Data.Show.Generic (genericShow)
 import Data.String (split)
@@ -24,7 +25,7 @@ import Parsing.Combinators ((<?>))
 import Parsing.String (char)
 import Test.QuickCheck ((===), Result)
 import Test.Spec (Spec, pending, describe, it)
-import Test.Spec.Assertions (expectError, fail, shouldEqual, shouldSatisfy)
+import Test.Spec.Assertions (expectError, fail, shouldEqual, shouldNotSatisfy, shouldSatisfy)
 import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
@@ -43,7 +44,17 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         it "shows paths" do
           show path1 `shouldEqual` "RLRLRLRLRL..."
           show path2 `shouldEqual` "LLRLLRLLRL..."
-      pending "other stuff"
+      it "finds some nodes" do
+        case runParser example1 parseInput of
+          Left _ -> fail "example1 parse failed"
+          Right { nodes } -> nodes `shouldNotSatisfy` isEmpty
+        case runParser example2 parseInput of
+          Left _ -> fail "example2 parse failed"
+          Right { nodes } -> nodes `shouldNotSatisfy` isEmpty
+      it "solve example1" do
+        solve1 example1 `shouldEqual` Right 2
+      it "solve example2" do
+        solve1 example2 `shouldEqual` Right 6
     describe "Part 2" do
       pending "more stuff"
 
@@ -57,7 +68,8 @@ CCC = (ZZZ, GGG)
 DDD = (DDD, DDD)
 EEE = (EEE, EEE)
 GGG = (GGG, GGG)
-ZZZ = (ZZZ, ZZZ)"""
+ZZZ = (ZZZ, ZZZ)
+"""
 
 example2 :: String
 example2 =
