@@ -21,7 +21,7 @@ import Data.Generic.Rep (class Generic)
 import Data.List.Lazy (nil, uncons, (:))
 import Data.List.Lazy as Lazy
 import Data.Map (Map, insert, lookup)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
 import Data.Show.Generic (genericShow)
 import Debug (spy)
@@ -55,14 +55,21 @@ solve1 input = start <$> runParser input parseInput
 
   go :: Int -> String -> Path -> Map String Node -> Int
   go i "ZZZ" _ _ = i -- reached the end
-  go i node (Path path) nodes = fromMaybe i do
-    { left, right } <- lookup node nodes
-    { head, tail } <- uncons path
+  go i node (Path path) nodes =
     let
-      next = case head of
-        L -> left
-        R -> right
-    pure $ go (inc i) next (Path tail) nodes
+      nextSteps = do
+        { left, right } <- lookup node nodes
+        { head, tail } <- uncons path
+        let
+          next = case head of
+            L -> left
+            R -> right
+        pure $ { next, path': Path tail }
+    in
+      case nextSteps of
+        Nothing -> i
+        Just { next, path' } ->
+          go (inc i) next path' nodes
 
 parseInput :: Parser String { nodes :: Map String Node, path :: Path }
 parseInput = do
