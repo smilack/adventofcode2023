@@ -6,6 +6,7 @@ module AdventOfCode.Twenty23.Eight
   , parseInput
   , parsePath
   , solve1
+  , solve2
   ) where
 
 import AdventOfCode.Twenty23.Util
@@ -44,9 +45,11 @@ main = launchAff_ do
     log "Minimum steps to reach ZZZ"
     logShow $ solve1 input
     log "Part2:"
+    log "Minimum steps to reach __Z on all nodes"
+    logShow $ solve2 input
 
--- log ""
--- logShow $ solve2 input
+solve2 :: String -> Either ParseError Int
+solve2 input = Right 0 <* runParser input parseInput
 
 solve1 :: String -> Either ParseError Int
 solve1 input = start <$> runParser input parseInput

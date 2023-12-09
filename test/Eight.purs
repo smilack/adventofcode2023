@@ -56,7 +56,8 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       it "solve example2" do
         solve1 example2 `shouldEqual` Right 6
     describe "Part 2" do
-      pending "more stuff"
+      it "solve part 2" do
+        solve2 example3 `shouldEqual` Right 6
 
 example1 :: String
 example1 =
@@ -78,3 +79,16 @@ example2 =
 AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)"""
+
+example3 :: String
+example3 =
+  """LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)"""
