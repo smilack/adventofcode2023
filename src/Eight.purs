@@ -9,34 +9,34 @@ module AdventOfCode.Twenty23.Eight
   , solve2
   ) where
 
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Util (genericParser, inc, skip)
 import Prelude
 
 import Control.Plus (empty)
 import Data.Array (foldr, many)
 import Data.Bounded.Generic (genericBottom, genericTop)
-import Data.Either (Either(..))
+import Data.Either (Either)
 import Data.Enum (class BoundedEnum, class Enum)
 import Data.Enum.Generic (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
-import Data.Foldable (all, intercalate)
+import Data.Foldable (foldl)
 import Data.Generic.Rep (class Generic)
-import Data.List.Lazy (nil, uncons, (:))
+import Data.List.Lazy (uncons)
 import Data.List.Lazy as Lazy
 import Data.Map (Map, insert, keys, lookup)
-import Data.Maybe (Maybe(..), fromMaybe, maybe)
+import Data.Maybe (Maybe(..))
 import Data.Newtype (class Newtype, unwrap)
-import Data.Set (Set, filter)
+import Data.Set (filter)
 import Data.Set (map) as Set
 import Data.Show.Generic (genericShow)
 import Data.String.CodeUnits (toCharArray)
-import Debug (spy)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
+import JS.BigInt (BigInt, fromInt)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (ParseError(..), Parser, runParser)
+import Parsing (ParseError, Parser, runParser)
 import Parsing.Combinators (try)
 import Parsing.String (takeN)
 import Parsing.String.Basic (skipSpaces)
@@ -52,12 +52,17 @@ main = launchAff_ do
     log "Minimum steps to reach __Z on all nodes"
     logShow $ solve2 input
 
-solve2 :: String -> Either ParseError Int
+solve2 :: String -> Either ParseError BigInt
 solve2 input = go <$> runParser input parseInput
   where
   start = filter (endsIn 'A') <<< keys
   go { path, nodes } =
-    followManyPaths nodes path (start nodes) 0
+    let
+      steps = Set.map fromInt
+        $ Set.map (\n -> followPath (endsIn 'Z') nodes path n 0)
+        $ (start nodes)
+    in
+      foldl lcm one steps
 
 endsIn :: Char -> String -> Boolean
 endsIn ch = go <<< toCharArray
@@ -65,52 +70,19 @@ endsIn ch = go <<< toCharArray
   go [ _, _, x ] | x == ch = true
   go _ = false
 
-followManyPaths :: Map String Node -> Path -> Set String -> Int -> Int
-followManyPaths nodeMap (Path path) nodes i
-  | all (endsIn 'Z') nodes = i
-  | otherwise =
-      let
-        _ =
-          if i `mod` 500000 == 0 then
-            spy "steps" i
-          else
-            i
-        _ =
-          if i `mod` 500000 == 0 then
-            spy "nodes" (intercalate " " nodes)
-          else
-            ""
-      in
-        case uncons path of
-          Nothing -> i
-          Just { head, tail } ->
-            followManyPaths
-              nodeMap
-              (Path tail)
-              (Set.map (follow head) nodes)
-              (inc i)
-      where
-      follow d node =
-        case lookup node nodeMap of
-          Nothing -> node
-          Just { left, right } ->
-            case d of
-              L -> left
-              R -> right
-
 solve1 :: String -> Either ParseError Int
 solve1 input = go <$> runParser input parseInput
   where
-  go { nodes, path } = followPath nodes path "AAA" 0
+  go { nodes, path } = followPath (_ == "ZZZ") nodes path "AAA" 0
 
-followPath :: Map String Node -> Path -> String -> Int -> Int
-followPath nodeMap path node i
-  | node == "ZZZ" = i
+followPath :: (String -> Boolean) -> Map String Node -> Path -> String -> Int -> Int
+followPath done nodeMap path node i
+  | done node = i
   | otherwise =
       case next nodeMap path node of
         Nothing -> i
         Just { path', nextNode } ->
-          followPath nodeMap path' nextNode (inc i)
+          followPath done nodeMap path' nextNode (inc i)
 
 next
   :: Map String Node

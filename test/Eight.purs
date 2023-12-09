@@ -2,31 +2,18 @@ module Test.AdventOfCode.Twenty23.Eight
   ( main
   ) where
 
-import AdventOfCode.Twenty23.Eight
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Eight (Direction(..), mkPath, parseInput, parsePath, solve1, solve2)
 import Prelude
 
-import Control.Alt ((<|>))
-import Data.Either (Either(..), isLeft, isRight)
-import Data.Generic.Rep (class Generic)
-import Data.List.Lazy (List(..), nil, (:))
+import Data.Either (Either(..), isRight)
+import Data.List.Lazy (nil, (:))
 import Data.Map (isEmpty)
-import Data.Maybe (Maybe(..))
-import Data.Show.Generic (genericShow)
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
-import Data.Tuple (Tuple(..), fst)
-import Data.Unfoldable1 (class Unfoldable1)
-import Data.Unfoldable1 (iterateN) as Unf
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Parsing (Parser, runParser)
-import Parsing.Combinators ((<?>))
-import Parsing.String (char)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
-import Test.Spec.Assertions (expectError, fail, shouldEqual, shouldNotSatisfy, shouldSatisfy)
-import Test.Spec.QuickCheck (quickCheck)
+import JS.BigInt (fromInt)
+import Parsing (runParser)
+import Test.Spec (describe, it)
+import Test.Spec.Assertions (fail, shouldEqual, shouldNotSatisfy, shouldSatisfy)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
@@ -57,7 +44,7 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         solve1 example2 `shouldEqual` Right 6
     describe "Part 2" do
       it "solve part 2" do
-        solve2 example3 `shouldEqual` Right 6
+        solve2 example3 `shouldEqual` Right (fromInt 6)
 
 example1 :: String
 example1 =
