@@ -6,7 +6,7 @@ module AdventOfCode.Twenty23.Eight
   , parseInput
   , parsePath
   , solve1
-  -- , solve2
+  , solve2
   ) where
 
 import AdventOfCode.Twenty23.Util
@@ -18,13 +18,15 @@ import Data.Bounded.Generic (genericBottom, genericTop)
 import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, class Enum)
 import Data.Enum.Generic (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
+import Data.Foldable (all, intercalate)
 import Data.Generic.Rep (class Generic)
 import Data.List.Lazy (nil, uncons, (:))
 import Data.List.Lazy as Lazy
 import Data.Map (Map, insert, keys, lookup)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
-import Data.Set (filter)
+import Data.Set (Set, filter)
+import Data.Set (map) as Set
 import Data.Show.Generic (genericShow)
 import Data.String.CodeUnits (toCharArray)
 import Debug (spy)
@@ -47,20 +49,54 @@ main = launchAff_ do
     log "Minimum steps to reach ZZZ"
     logShow $ solve1 input
     log "Part2:"
+    log "Minimum steps to reach __Z on all nodes"
+    logShow $ solve2 input
 
---     log "Minimum steps to reach __Z on all nodes"
---     logShow $ solve2 input
+solve2 :: String -> Either ParseError Int
+solve2 input = go <$> runParser input parseInput
+  where
+  start = filter (endsIn 'A') <<< keys
+  go { path, nodes } =
+    followManyPaths nodes path (start nodes) 0
 
--- solve2 :: String -> Either ParseError Int
--- solve2 input = solve <$> runParser input parseInput
---   where
---   endsInA [_, _, 'A'] = true
---   endsInA _ = false
---   start = filter (toCharArray >>> endsInA) <<< keys
+endsIn :: Char -> String -> Boolean
+endsIn ch = go <<< toCharArray
+  where
+  go [ _, _, x ] | x == ch = true
+  go _ = false
 
---   solve { path, nodes } =
-
---   go
+followManyPaths :: Map String Node -> Path -> Set String -> Int -> Int
+followManyPaths nodeMap (Path path) nodes i
+  | all (endsIn 'Z') nodes = i
+  | otherwise =
+      let
+        _ =
+          if i `mod` 500000 == 0 then
+            spy "steps" i
+          else
+            i
+        _ =
+          if i `mod` 500000 == 0 then
+            spy "nodes" (intercalate " " nodes)
+          else
+            ""
+      in
+        case uncons path of
+          Nothing -> i
+          Just { head, tail } ->
+            followManyPaths
+              nodeMap
+              (Path tail)
+              (Set.map (follow head) nodes)
+              (inc i)
+      where
+      follow d node =
+        case lookup node nodeMap of
+          Nothing -> node
+          Just { left, right } ->
+            case d of
+              L -> left
+              R -> right
 
 solve1 :: String -> Either ParseError Int
 solve1 input = go <$> runParser input parseInput
