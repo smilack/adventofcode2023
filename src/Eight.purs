@@ -6,7 +6,7 @@ module AdventOfCode.Twenty23.Eight
   , parseInput
   , parsePath
   , solve1
-  , solve2
+  -- , solve2
   ) where
 
 import AdventOfCode.Twenty23.Util
@@ -21,10 +21,12 @@ import Data.Enum.Generic (genericCardinality, genericFromEnum, genericPred, gene
 import Data.Generic.Rep (class Generic)
 import Data.List.Lazy (nil, uncons, (:))
 import Data.List.Lazy as Lazy
-import Data.Map (Map, insert, lookup)
+import Data.Map (Map, insert, keys, lookup)
 import Data.Maybe (Maybe(..), fromMaybe, maybe)
 import Data.Newtype (class Newtype, unwrap)
+import Data.Set (filter)
 import Data.Show.Generic (genericShow)
+import Data.String.CodeUnits (toCharArray)
 import Debug (spy)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
@@ -45,34 +47,48 @@ main = launchAff_ do
     log "Minimum steps to reach ZZZ"
     logShow $ solve1 input
     log "Part2:"
-    log "Minimum steps to reach __Z on all nodes"
-    logShow $ solve2 input
 
-solve2 :: String -> Either ParseError Int
-solve2 input = Right 0 <* runParser input parseInput
+--     log "Minimum steps to reach __Z on all nodes"
+--     logShow $ solve2 input
+
+-- solve2 :: String -> Either ParseError Int
+-- solve2 input = solve <$> runParser input parseInput
+--   where
+--   endsInA [_, _, 'A'] = true
+--   endsInA _ = false
+--   start = filter (toCharArray >>> endsInA) <<< keys
+
+--   solve { path, nodes } =
+
+--   go
 
 solve1 :: String -> Either ParseError Int
-solve1 input = start <$> runParser input parseInput
+solve1 input = go <$> runParser input parseInput
   where
-  start { nodes, path } = go 0 "AAA" path nodes
+  go { nodes, path } = followPath nodes path "AAA" 0
 
-  go :: Int -> String -> Path -> Map String Node -> Int
-  go i "ZZZ" _ _ = i -- reached the end
-  go i node (Path path) nodes =
-    let
-      nextSteps = do
-        { left, right } <- lookup node nodes
-        { head, tail } <- uncons path
-        let
-          next = case head of
-            L -> left
-            R -> right
-        pure $ { next, path': Path tail }
-    in
-      case nextSteps of
+followPath :: Map String Node -> Path -> String -> Int -> Int
+followPath nodeMap path node i
+  | node == "ZZZ" = i
+  | otherwise =
+      case next nodeMap path node of
         Nothing -> i
-        Just { next, path' } ->
-          go (inc i) next path' nodes
+        Just { path', nextNode } ->
+          followPath nodeMap path' nextNode (inc i)
+
+next
+  :: Map String Node
+  -> Path
+  -> String
+  -> Maybe { path' :: Path, nextNode :: String }
+next nodeMap (Path path) node = do
+  { left, right } <- lookup node nodeMap
+  { head, tail } <- uncons path
+  let
+    nextNode = case head of
+      L -> left
+      R -> right
+  pure $ { nextNode, path': Path tail }
 
 parseInput :: Parser String { nodes :: Map String Node, path :: Path }
 parseInput = do

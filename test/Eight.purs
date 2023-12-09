@@ -56,8 +56,9 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       it "solve example2" do
         solve1 example2 `shouldEqual` Right 6
     describe "Part 2" do
-      it "solve part 2" do
-        solve2 example3 `shouldEqual` Right 6
+      pending "solve part 2"
+
+-- solve2 example3 `shouldEqual` Right 6
 
 example1 :: String
 example1 =
