@@ -4,11 +4,13 @@ module AdventOfCode.Twenty23.Util
   , genericParser
   , hSqrt
   , inc
+  , last2
   , lines
   , modify
   , oneOf'
   , oneOfChar
   , oneOfString
+  , penultimate
   , range'
   , skip
   , sumMap
@@ -23,6 +25,9 @@ import Data.Array (foldl)
 import Data.Array.NonEmpty (NonEmptyArray, singleton, snoc)
 import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, enumFromTo)
+import Data.Lens (lastOf, traversed)
+import Data.List (List, init, last, unsnoc)
+import Data.Maybe (Maybe)
 import Data.String (split)
 import Data.String.CodeUnits (toCharArray)
 import Data.String.Pattern (Pattern(..))
@@ -139,3 +144,12 @@ genericParser = oneOfString $ map (\a -> Tuple (show a) a) as
   where
   as :: Array a
   as = enumFromTo bottom top
+
+penultimate :: forall a. List a -> Maybe a
+penultimate = join <<< map (lastOf traversed) <<< init
+
+last2 :: forall a. List a -> Maybe (Tuple a a)
+last2 l = do
+  uns <- unsnoc l
+  penult <- last uns.init
+  pure $ Tuple penult uns.last

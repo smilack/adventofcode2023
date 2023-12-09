@@ -11,6 +11,8 @@ import Data.Either (isLeft)
 import Data.Enum (class BoundedEnum, class Enum)
 import Data.Enum.Generic (genericCardinality, genericFromEnum, genericPred, genericSucc, genericToEnum)
 import Data.Generic.Rep (class Generic)
+import Data.List (List(..), (:))
+import Data.Maybe (Maybe(..))
 import Data.Show.Generic (genericShow)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
@@ -59,6 +61,17 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         testParser "C" C $ genericParser @Foo
       it "genericParser error" $ do
         (runParser "D" $ genericParser @Foo) `shouldSatisfy` isLeft
+    describe "penultimate/last2" do
+      it "penultimate (1 : 2 : 3 : Nil)" do
+        penultimate (1 : 2 : 3 : Nil) `shouldEqual` Just 2
+        penultimate (1 : 2 : Nil) `shouldEqual` Just 1
+        penultimate (1 : Nil) `shouldEqual` Nothing
+        penultimate (Nil @Int) `shouldEqual` Nothing
+      it "last2 (1 : 2 : 3 : Nil)" do
+        last2 (1 : 2 : 3 : Nil) `shouldEqual` Just (Tuple 2 3)
+        last2 (1 : 2 : Nil) `shouldEqual` Just (Tuple 1 2)
+        last2 (1 : Nil) `shouldEqual` Nothing
+        last2 (Nil @Int) `shouldEqual` Nothing
 
 data Foo = A | B | C
 
