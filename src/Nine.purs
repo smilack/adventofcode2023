@@ -1,23 +1,32 @@
 module AdventOfCode.Twenty23.Nine
   ( derivative
+  , findConstFn
   , main
+  , next
   , parseHistories
+  , solve1
   ) where
 
 import AdventOfCode.Twenty23.Util
 import Prelude
 
-import Data.List (List(..), scanl, uncons)
+import Data.Either (Either)
+import Data.Foldable (all)
+import Data.List (List(..), (:))
+import Data.List.NonEmpty (NonEmptyList, foldMap, foldl, foldr, fromList, last, scanl, singleton, uncons)
 import Data.Maybe (Maybe(..))
+import Data.Monoid.Additive (Additive(..))
+import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
+import Data.Unfoldable (unfoldr, unfoldr1)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (Parser)
-import Parsing.Combinators (sepBy)
+import Parsing (ParseError(..), Parser, runParser)
+import Parsing.Combinators (sepBy, sepBy1, sepEndBy1)
 import Parsing.String (char)
 import Parsing.String.Basic (intDecimal, skipSpaces)
 
@@ -26,31 +35,52 @@ main = launchAff_ do
   input <- readTextFile UTF8 "./input/9"
   liftEffect do
     log "Part 1:"
-    -- log ""
-    -- logShow $ solve1 input
+    log "sum of predicted next values"
+    logShow $ solve1 input
     log "Part2:"
 
 -- log ""
 -- logShow $ solve2 input
 
-parseHistories :: Parser String (List (List Int))
-parseHistories = parseHistory `sepBy` char '\n'
+solve1 :: String -> Either ParseError Int
+solve1 input = do
+  histories <- runParser input parseHistories
+  pure $ unwrap $ foldMap (Additive <<< next <<< findConstFn) histories
 
-parseHistory :: Parser String (List Int)
-parseHistory = intDecimal `sepBy` char ' '
+parseHistories :: Parser String (NonEmptyList (NonEmptyList Int))
+parseHistories = parseHistory `sepEndBy1` char '\n'
 
---findConstFn :: List (List a) -> List (List a)
--- findConstFn fnfam
---   | all lastOf 0 =
--- | otherwise = findConstFn $ fnfam snoc (derivative $ lastOf fnfam)
+parseHistory :: Parser String (NonEmptyList Int)
+parseHistory = intDecimal `sepBy1` char ' '
 
-derivative :: forall a. Ring a => List a -> List a
+next :: forall a. Ring a => NonEmptyList (NonEmptyList a) -> a
+next = foldr (\l a -> last l + a) zero
+
+findConstFn
+  :: forall a
+   . Eq a
+  => Ring a
+  => NonEmptyList a
+  -> NonEmptyList (NonEmptyList a)
+findConstFn = unfoldr1 go
+  where
+  go f =
+    let
+      f' =
+        if all (_ == zero) f then
+          Nothing
+        else
+          Just $ derivative f
+    in
+      Tuple f f'
+
+derivative :: forall a. Ring a => NonEmptyList a -> NonEmptyList a
 derivative = map (\(Tuple a b) -> b - a) <<< pairs
 
-pairs :: forall a. List a -> List (Tuple a a)
-pairs = uncons >>> case _ of
-  Nothing -> Nil
-  Just { head, tail } ->
-    scanl pair (Tuple head head) tail
+pairs :: forall a. NonEmptyList a -> NonEmptyList (Tuple a a)
+pairs = uncons >>> \{ head, tail } ->
+  case fromList tail of
+    Nothing -> singleton $ Tuple head head
+    Just t -> scanl pair (Tuple head head) t
   where
-  pair (Tuple _ prev) next = Tuple prev next
+  pair (Tuple _ pre) nex = Tuple pre nex
