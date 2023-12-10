@@ -3,9 +3,14 @@ module AdventOfCode.Twenty23.Ten
   , Grid(..)
   , Pipe(..)
   , countStepsInLoop
+  , get
   , main
+  , move
+  , opposite
   , parseGrid
   , parsePipe
+  , pointsBackTo
+  , solve1
   , startLocation
   , validMoves
   ) where
@@ -14,10 +19,15 @@ import AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Alt ((<|>))
+import Control.Alternative (guard)
 import Control.Apply (lift2)
-import Data.Array (filter)
+import Data.Array (filter, head, (:))
 import Data.Array.NonEmpty (NonEmptyArray, elem, elemIndex, findIndex, foldMap1, fromFoldable1, intercalate, (!!))
-import Data.Maybe (Maybe(..), isJust)
+import Data.Either (Either)
+import Data.Foldable (foldMap, or)
+import Data.Generic.Rep (class Generic)
+import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
+import Data.Monoid.Disj (Disj(..))
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
@@ -25,19 +35,21 @@ import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (Parser)
+import Parsing (ParseError(..), Parser, runParser)
 import Parsing.Combinators (sepEndBy1, (<?>))
 import Parsing.Combinators.Array (many1)
 import Parsing.String (char)
 import Parsing.String.Basic (skipSpaces)
+import Test.QuickCheck (class Arbitrary, arbitrary)
+import Test.QuickCheck.Arbitrary (genericArbitrary)
 
 main :: Effect Unit
 main = launchAff_ do
   input <- readTextFile UTF8 "./input/10"
   liftEffect do
     log "Part 1:"
-    -- log ""
-    -- logShow $ solve1 input
+    log "Half loop length"
+    logShow $ solve1 input
     log "Part2:"
 
 -- log ""
@@ -50,8 +62,27 @@ main = launchAff_ do
 
 type Coord = { x :: Int, y :: Int }
 
+solve1 :: String -> Either ParseError Int
+solve1 input = do
+  grid <- runParser input parseGrid
+  pure $ (countStepsInLoop grid) / 2
+
 countStepsInLoop :: Grid -> Int
-countStepsInLoop (Grid g) = 0
+countStepsInLoop g = fromMaybe 0 do
+  start <- startLocation g
+  moves <- validMoves g S
+  first <- head moves
+  go 0 start (opposite first)
+  where
+  go :: Int -> Coord -> Direction -> Maybe Int
+  go steps c from = do
+    pipe <- get c g
+    if pipe == S && steps > 0 then
+      Just steps
+    else do
+      moves <- (filter (_ /= from)) <$> (validMoves g pipe)
+      dir <- head moves
+      go (inc steps) (move c dir) (opposite dir)
 
 startLocation :: Grid -> Maybe Coord
 startLocation (Grid g) = lift2 { x: _, y: _ } x y
@@ -117,45 +148,48 @@ data Direction
 
 derive instance Eq Direction
 
+derive instance Generic Direction _
+
+instance Arbitrary Direction where
+  arbitrary = genericArbitrary
+
 instance Show Direction where
   show Up = "🠙"
   show Dn = "🠛"
   show Rt = "🠚"
   show Lf = "🠘"
 
-validMoves :: Grid -> Pipe -> Maybe (Tuple Direction Direction)
+validMoves :: Grid -> Pipe -> Maybe (Array Direction)
 validMoves g = case _ of
-  Г -> Just (Tuple Rt Dn)
-  𝖨 -> Just (Tuple Dn Up)
-  L -> Just (Tuple Rt Up)
-  𐐑 -> Just (Tuple Dn Lf)
-  𐐇 -> Just (Tuple Lf Up)
-  Ⲻ -> Just (Tuple Rt Lf)
+  Г -> Just [ Rt, Dn ]
+  𝖨 -> Just [ Dn, Up ]
+  L -> Just [ Rt, Up ]
+  𐐑 -> Just [ Dn, Lf ]
+  𐐇 -> Just [ Lf, Up ]
+  Ⲻ -> Just [ Rt, Lf ]
   O -> Nothing
-  S -> startMoves
-  where
-  startMoves = startLocation g >>= \loc ->
+  S -> startLocation g >>= \loc ->
     let
       valid = filter
         (pointsBackTo loc g)
         [ Up, Dn, Rt, Lf ]
     in
       case valid of
-        [ a, b ] -> Just (Tuple a b)
+        arr@[ _, _ ] -> Just arr
         _ -> Nothing
 
 pointsBackTo :: Coord -> Grid -> Direction -> Boolean
-pointsBackTo c g d = isJust do
-  p <- get (move c d) g
-  (Tuple a b) <- validMoves g p
-  pure $ opposites a d || opposites b d
+pointsBackTo c g d =
+  get (move c d) g
+    >>= validMoves g
+    <#> map (_ == opposite d)
+    # maybe false or
 
-opposites :: Direction -> Direction -> Boolean
-opposites Up Dn = true
-opposites Dn Up = true
-opposites Rt Lf = true
-opposites Lf Rt = true
-opposites _ _ = false
+opposite :: Direction -> Direction
+opposite Up = Dn
+opposite Dn = Up
+opposite Rt = Lf
+opposite Lf = Rt
 
 move :: Coord -> Direction -> Coord
 move { x, y } = case _ of

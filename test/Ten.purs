@@ -30,26 +30,49 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Ten" do
     describe "Part 1" do
       describe "general" do
-        pending "move"
-        pending "pointsBackTo"
+        it "move" do
+          quickCheck \c d -> c == move (move c d) (opposite d)
+        describe "pointsBackTo" do
+          describe "Grid 1" do
+            it "(1,1) -> Up ==> false" do
+              pointsBackTo { x: 1, y: 1 } grid1 Up `shouldEqual` false
+            it "(1,1) -> Dn ==> true" do
+              pointsBackTo { x: 1, y: 1 } grid1 Dn `shouldEqual` true
+            it "(1,1) -> Rt ==> true" do
+              pointsBackTo { x: 1, y: 1 } grid1 Rt `shouldEqual` true
+            it "(1,1) -> Lf ==> false" do
+              pointsBackTo { x: 1, y: 1 } grid1 Lf `shouldEqual` false
+          describe "Grid 2" do
+            it "(0,2) -> Up ==> false" do
+              pointsBackTo { x: 0, y: 2 } grid2 Up `shouldEqual` false
+            it "(0,2) -> Dn ==> true" do
+              pointsBackTo { x: 0, y: 2 } grid2 Dn `shouldEqual` true
+            it "(0,2) -> Rt ==> true" do
+              pointsBackTo { x: 0, y: 2 } grid2 Rt `shouldEqual` true
+            it "(0,2) -> Lf ==> false" do
+              pointsBackTo { x: 0, y: 2 } grid2 Lf `shouldEqual` false
       describe ("example 1" <> show grid1) do
         it "parse input" do
           runParser ex1 parseGrid `shouldEqual` Right grid1
         it "find start location" do
           startLocation grid1 `shouldEqual` Just { x: 1, y: 1 }
         it "valid moves from start" do
-          validMoves grid1 S `shouldEqual` Just (Tuple Dn Rt)
-      -- it "count steps" do
-      -- countStepsInLoop grid1 `shouldEqual` 4
+          validMoves grid1 S `shouldEqual` Just [ Dn, Rt ]
+        it "count steps" do
+          countStepsInLoop grid1 `shouldEqual` 8
+        it "solve part 1" do
+          solve1 ex1 `shouldEqual` Right 4
       describe ("example 2" <> show grid2) do
         it "parse input" do
           runParser ex2 parseGrid `shouldEqual` Right grid2
         it "find start location" do
           startLocation grid2 `shouldEqual` Just { x: 0, y: 2 }
         it "valid moves from start" do
-          validMoves grid2 S `shouldEqual` Just (Tuple Dn Rt)
-    -- it "count steps" do
-    -- countStepsInLoop grid2 `shouldEqual` 8
+          validMoves grid2 S `shouldEqual` Just [ Dn, Rt ]
+        it "count steps" do
+          countStepsInLoop grid2 `shouldEqual` 16
+        it "solve part 1" do
+          solve1 ex2 `shouldEqual` Right 8
     describe "Part 2" do
       pending "more stuff"
 
