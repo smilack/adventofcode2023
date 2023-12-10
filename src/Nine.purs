@@ -5,30 +5,29 @@ module AdventOfCode.Twenty23.Nine
   , next
   , parseHistories
   , solve1
+  , solve2
   ) where
 
-import AdventOfCode.Twenty23.Util
 import Prelude
 
 import Data.Either (Either)
 import Data.Foldable (all)
-import Data.List (List(..), (:))
-import Data.List.NonEmpty (NonEmptyList, foldMap, foldl, foldr, fromList, last, scanl, singleton, uncons)
+import Data.List.NonEmpty (NonEmptyList, foldMap, foldr, fromList, last, reverse, scanl, singleton, uncons)
 import Data.Maybe (Maybe(..))
 import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
-import Data.Unfoldable (unfoldr, unfoldr1)
+import Data.Unfoldable (unfoldr1)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (ParseError(..), Parser, runParser)
-import Parsing.Combinators (sepBy, sepBy1, sepEndBy1)
+import Parsing (ParseError, Parser, runParser)
+import Parsing.Combinators (sepBy1, sepEndBy1)
 import Parsing.String (char)
-import Parsing.String.Basic (intDecimal, skipSpaces)
+import Parsing.String.Basic (intDecimal)
 
 main :: Effect Unit
 main = launchAff_ do
@@ -38,14 +37,26 @@ main = launchAff_ do
     log "sum of predicted next values"
     logShow $ solve1 input
     log "Part2:"
-
--- log ""
--- logShow $ solve2 input
+    log "sum of predicted prev values"
+    logShow $ solve2 input
 
 solve1 :: String -> Either ParseError Int
 solve1 input = do
   histories <- runParser input parseHistories
-  pure $ unwrap $ foldMap (Additive <<< next <<< findConstFn) histories
+  pure
+    $ unwrap
+    $ foldMap
+        (Additive <<< next <<< findConstFn)
+        histories
+
+solve2 :: String -> Either ParseError Int
+solve2 input = do
+  histories <- runParser input parseHistories
+  pure
+    $ unwrap
+    $ foldMap
+        (Additive <<< next <<< findConstFn <<< reverse)
+        histories
 
 parseHistories :: Parser String (NonEmptyList (NonEmptyList Int))
 parseHistories = parseHistory `sepEndBy1` char '\n'

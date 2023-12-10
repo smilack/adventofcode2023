@@ -2,23 +2,19 @@ module Test.AdventOfCode.Twenty23.Nine
   ( main
   ) where
 
-import AdventOfCode.Twenty23.Nine
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Nine (derivative, findConstFn, next, parseHistories, solve1, solve2)
+import AdventOfCode.Twenty23.Util (testParser)
 import Prelude
 
 import Data.Either (Either(..))
-import Data.List (List(..), fromFoldable, (:))
+import Data.List (List(..), (:))
 import Data.List.NonEmpty (NonEmptyList, fromList)
 import Data.Maybe (fromJust)
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Partial.Unsafe (unsafePartial)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
@@ -32,16 +28,17 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         derivative ex1a `shouldEqual` ex1a'
         derivative ex2a `shouldEqual` ex2a'
         derivative ex3a `shouldEqual` ex3a'
-    it "finds all derivatives until reaching a constant fn" do
-      findConstFn ex1a `shouldEqual` unsFromL (ex1a : ex1a' : ex1a'' : Nil)
-    it "predicts next number for list" do
-      next (findConstFn ex1a) `shouldEqual` 18
-      next (findConstFn ex2a) `shouldEqual` 28
-      next (findConstFn ex3a) `shouldEqual` 68
-    it "solve part1" do
-      solve1 example1 `shouldEqual` (Right 114)
+      it "finds all derivatives until reaching a constant fn" do
+        findConstFn ex1a `shouldEqual` unsFromL (ex1a : ex1a' : ex1a'' : Nil)
+      it "predicts next number for list" do
+        next (findConstFn ex1a) `shouldEqual` 18
+        next (findConstFn ex2a) `shouldEqual` 28
+        next (findConstFn ex3a) `shouldEqual` 68
+      it "solve part1" do
+        solve1 example1 `shouldEqual` (Right 114)
     describe "Part 2" do
-      pending "more stuff"
+      it "solve part2" do
+        solve2 example1 `shouldEqual` (Right 2)
 
 example1 :: String
 example1 =
