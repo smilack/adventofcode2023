@@ -29,6 +29,8 @@ import Data.Array.NonEmpty (NonEmptyArray, elem, elemIndex, findIndex, foldMap1,
 import Data.Either (Either)
 import Data.Foldable (foldMap, or)
 import Data.Generic.Rep (class Generic)
+import Data.Lens.Index (ix)
+import Data.Lens.Types (AffineTraversal')
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Monoid.Disj (Disj(..))
 import Data.Tuple (Tuple(..))
@@ -74,7 +76,7 @@ emptyGridMap (Grid nea) = Grid $
   { head } = uncons nea
 
 mapPipeEdges :: Grid Pipe -> Grid InOrOut
-mapPipeEdges =
+mapPipeEdges g =
   -- traverse through pipe as in countStepsInLoop
   -- set corners to Corner
   -- for horizontal:
@@ -90,7 +92,18 @@ mapPipeEdges =
   --     set to Out
   -- then count number of In
   -- if it's not right, reverse U/D and L/R
-  emptyGridMap
+  -- do
+  --   start <- startLocation g
+  --   moves <- validMoves g S
+  --   let
+  --     this = case moves of
+  --       [ Dn, Up ] -> 𝖨
+  --       [ Rt, Lf ] -> Ⲻ
+
+  emptyGridMap g
+
+_coord :: forall a. Coord -> AffineTraversal' NonEmptyArray a
+_coord { x, y } = ix y >>> ix x
 
 solve1 :: String -> Either ParseError Int
 solve1 input =
