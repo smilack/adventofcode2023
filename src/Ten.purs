@@ -1,10 +1,13 @@
 module AdventOfCode.Twenty23.Ten
   ( Direction(..)
   , Grid(..)
+  , InOrOut(..)
   , Pipe(..)
   , countStepsInLoop
+  , emptyGridMap
   , get
   , main
+  , mapPipeEdges
   , move
   , opposite
   , parseGrid
@@ -19,10 +22,10 @@ import AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Alt ((<|>))
-import Control.Alternative (guard)
+import Control.Alternative (empty, guard)
 import Control.Apply (lift2)
 import Data.Array (filter, head, (:))
-import Data.Array.NonEmpty (NonEmptyArray, elem, elemIndex, findIndex, foldMap1, fromFoldable1, intercalate, (!!))
+import Data.Array.NonEmpty (NonEmptyArray, elem, elemIndex, findIndex, foldMap1, fromFoldable1, intercalate, length, replicate, uncons, (!!))
 import Data.Either (Either)
 import Data.Foldable (foldMap, or)
 import Data.Generic.Rep (class Generic)
@@ -63,6 +66,32 @@ main = launchAff_ do
 
 type Coord = { x :: Int, y :: Int }
 
+emptyGridMap :: Grid Pipe -> Grid InOrOut
+emptyGridMap (Grid nea) = Grid $
+  replicate (length nea)
+    (replicate (length head) Unknown)
+  where
+  { head } = uncons nea
+
+mapPipeEdges :: Grid Pipe -> Grid InOrOut
+mapPipeEdges =
+  -- traverse through pipe as in countStepsInLoop
+  -- set corners to Corner
+  -- for horizontal:
+  --   if moving L->R set to EdgeDown
+  --             L<-R EdgeUp
+  -- vertical:
+  --   moving U->D EdgeLeft
+  --          U<-D EdgeRight
+  -- then iterate until no Unknown left:
+  --   if touching an In or the tip of an arrow
+  --     set to In
+  --   if touching an Out or back of an arrow
+  --     set to Out
+  -- then count number of In
+  -- if it's not right, reverse U/D and L/R
+  emptyGridMap
+
 solve1 :: String -> Either ParseError Int
 solve1 input =
   (_ / 2)
@@ -70,7 +99,7 @@ solve1 input =
     <$> spyWith "Pipes" show
     <$> runParser input parseGrid
 
-countStepsInLoop :: Grid -> Int
+countStepsInLoop :: Grid Pipe -> Int
 countStepsInLoop g = fromMaybe 0 do
   start <- startLocation g
   moves <- validMoves g S
@@ -93,13 +122,13 @@ countStepsInLoop g = fromMaybe 0 do
             Nothing -> steps
             Just d -> go (inc steps) (move c d) (opposite d)
 
-startLocation :: Grid -> Maybe Coord
+startLocation :: Grid Pipe -> Maybe Coord
 startLocation (Grid g) = lift2 { x: _, y: _ } x y
   where
   y = findIndex (S `elem` _) g
   x = elemIndex S =<< (g !! _) =<< y
 
-parseGrid :: Parser String Grid
+parseGrid :: Parser String (Grid Pipe)
 parseGrid = map
   (Grid <<< fromFoldable1)
   (skipSpaces *> parseLines)
@@ -117,11 +146,11 @@ parsePipe = Г <$ char 'F'
   <|> S <$ char 'S'
     <?> "Pipe (one of: F|L7J-.S)"
 
-newtype Grid = Grid (NonEmptyArray (NonEmptyArray Pipe))
+newtype Grid a = Grid (NonEmptyArray (NonEmptyArray a))
 
-derive instance Eq Grid
+derive instance Eq a => Eq (Grid a)
 
-instance Show Grid where
+instance Show a => Show (Grid a) where
   show (Grid g) = "\n"
     <> (intercalate "\n" $ map (foldMap1 show) g)
     <> "\n"
@@ -168,7 +197,7 @@ instance Show Direction where
   show Rt = "🠚"
   show Lf = "🠘"
 
-validMoves :: Grid -> Pipe -> Maybe (Array Direction)
+validMoves :: Grid Pipe -> Pipe -> Maybe (Array Direction)
 validMoves g = case _ of
   Г -> Just [ Rt, Dn ]
   𝖨 -> Just [ Dn, Up ]
@@ -187,7 +216,7 @@ validMoves g = case _ of
         arr@[ _, _ ] -> Just arr
         _ -> Nothing
 
-pointsBackTo :: Coord -> Grid -> Direction -> Boolean
+pointsBackTo :: Coord -> Grid Pipe -> Direction -> Boolean
 pointsBackTo c g d =
   get (move c d) g
     >>= validMoves g
@@ -207,6 +236,27 @@ move { x, y } = case _ of
   Rt -> { x: x + 1, y }
   Lf -> { x: x - 1, y }
 
-get :: Coord -> Grid -> Maybe Pipe
+get :: forall a. Coord -> Grid a -> Maybe a
 get { x, y } (Grid g) = (g !! y) >>= (\row -> row !! x)
 
+data InOrOut
+  = In
+  | Out
+  | EdgeUp
+  | EdgeDown
+  | EdgeLeft
+  | EdgeRight
+  | Corner
+  | Unknown
+
+derive instance Eq InOrOut
+
+instance Show InOrOut where
+  show In = "■"
+  show Out = "▢"
+  show EdgeUp = "⮝"
+  show EdgeDown = "⮟"
+  show EdgeLeft = "⮜"
+  show EdgeRight = "⮞"
+  show Corner = "⨯"
+  show Unknown = "?"

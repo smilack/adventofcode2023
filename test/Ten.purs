@@ -74,7 +74,15 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         it "solve part 1" do
           solve1 ex2 `shouldEqual` Right 8
     describe "Part 2" do
-      pending "more stuff"
+      it "emptyGridMap" do
+        emptyGridMap grid2 `shouldEqual` empty2
+      let
+        g3 = unsafePartial pFromRight
+          $ runParser ex3 parseGrid
+      describe ("example 3" <> show g3) do
+        it "mapPipeEdges" do
+          mapPipeEdges g3 `shouldEqual` grid3
+      pending "solve part 2"
 
 ex1 :: String
 ex1 =
@@ -86,7 +94,7 @@ L|7||
 L|-JF
 """
 
-grid1 :: Grid
+grid1 :: Grid Pipe
 grid1 = mkGrid
   [ [ Ⲻ, L, 𝖨, Г, 𐐑 ]
   , [ 𐐑, S, Ⲻ, 𐐑, 𝖨 ]
@@ -105,7 +113,7 @@ SJLL7
 LJ.LJ
 """
 
-grid2 :: Grid
+grid2 :: Grid Pipe
 grid2 = mkGrid
   [ [ 𐐑, Ⲻ, Г, 𐐑, Ⲻ ]
   , [ O, Г, 𐐇, 𝖨, 𐐑 ]
@@ -114,8 +122,47 @@ grid2 = mkGrid
   , [ L, 𐐇, O, L, 𐐇 ]
   ]
 
-mkGrid :: Array (Array Pipe) -> Grid
+empty2 :: Grid InOrOut
+empty2 = mkGrid
+  [ [ Unknown, Unknown, Unknown, Unknown, Unknown ]
+  , [ Unknown, Unknown, Unknown, Unknown, Unknown ]
+  , [ Unknown, Unknown, Unknown, Unknown, Unknown ]
+  , [ Unknown, Unknown, Unknown, Unknown, Unknown ]
+  , [ Unknown, Unknown, Unknown, Unknown, Unknown ]
+  ]
+
+mkGrid :: forall a. Array (Array a) -> Grid a
 mkGrid = Grid <<< unsNEA <<< map unsNEA
   where
-  unsNEA :: forall a. Array a -> NonEmptyArray a
+  unsNEA :: forall b. Array b -> NonEmptyArray b
   unsNEA = unsafePartial fromJust <<< fromArray
+
+ex3 :: String
+ex3 =
+  """
+..........
+.S------7.
+.|F----7|.
+.||....||.
+.||....||.
+.|L-7F-J|.
+.|..||..|.
+.L--JL--J.
+..........
+"""
+
+grid3 :: Grid InOrOut
+grid3 = mkGrid
+  [ [ Out, Out, Out, Out, Out, Out, Out, Out, Out, Out ]
+  , [ Out, Corner, EdgeDown, EdgeDown, EdgeDown, EdgeDown, EdgeDown, EdgeDown, Corner, Out ]
+  , [ Out, EdgeRight, Corner, EdgeUp, EdgeUp, EdgeUp, EdgeUp, Corner, EdgeLeft, Out ]
+  , [ Out, EdgeRight, EdgeLeft, Out, Out, Out, Out, EdgeRight, EdgeLeft, Out ]
+  , [ Out, EdgeRight, EdgeLeft, Out, Out, Out, Out, EdgeRight, EdgeLeft, Out ]
+  , [ Out, EdgeRight, Corner, EdgeDown, Corner, Corner, EdgeDown, Corner, EdgeLeft, Out ]
+  , [ Out, EdgeRight, In, In, EdgeLeft, EdgeRight, In, In, EdgeLeft, Out ]
+  , [ Out, Corner, EdgeUp, EdgeUp, Corner, Corner, EdgeUp, EdgeUp, Corner, Out ]
+  , [ Out, Out, Out, Out, Out, Out, Out, Out, Out, Out ]
+  ]
+
+pFromRight :: forall a b. Partial => Either b a -> a
+pFromRight (Right a) = a
