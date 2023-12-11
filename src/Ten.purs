@@ -29,6 +29,7 @@ import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..), fromMaybe, isJust, maybe)
 import Data.Monoid.Disj (Disj(..))
 import Data.Tuple (Tuple(..))
+import Debug (spy, spyWith)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
@@ -63,26 +64,34 @@ main = launchAff_ do
 type Coord = { x :: Int, y :: Int }
 
 solve1 :: String -> Either ParseError Int
-solve1 input = do
-  grid <- runParser input parseGrid
-  pure $ (countStepsInLoop grid) / 2
+solve1 input =
+  (_ / 2)
+    <<< countStepsInLoop
+    <$> spyWith "Pipes" show
+    <$> runParser input parseGrid
 
 countStepsInLoop :: Grid -> Int
 countStepsInLoop g = fromMaybe 0 do
   start <- startLocation g
   moves <- validMoves g S
   first <- head moves
-  go 0 start (opposite first)
+  pure $ go 0 start (opposite first)
   where
-  go :: Int -> Coord -> Direction -> Maybe Int
-  go steps c from = do
-    pipe <- get c g
-    if pipe == S && steps > 0 then
-      Just steps
-    else do
-      moves <- (filter (_ /= from)) <$> (validMoves g pipe)
-      dir <- head moves
-      go (inc steps) (move c dir) (opposite dir)
+  go :: Int -> Coord -> Direction -> Int
+  go steps c from =
+    case get c g of
+      Nothing -> steps
+      Just pipe ->
+        if pipe == S && steps > 0 then
+          steps
+        else
+          case
+            validMoves g pipe
+              <#> filter (_ /= from)
+              >>= head
+            of
+            Nothing -> steps
+            Just d -> go (inc steps) (move c d) (opposite d)
 
 startLocation :: Grid -> Maybe Coord
 startLocation (Grid g) = lift2 { x: _, y: _ } x y
