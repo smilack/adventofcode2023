@@ -2,25 +2,18 @@ module Test.AdventOfCode.Twenty23.Ten
   ( main
   ) where
 
-import AdventOfCode.Twenty23.Ten
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Ten (Direction(..), Grid(..), InOrOut(..), Pipe(..), countStepsInLoop, emptyGridMap, mapPipeEdges, move, opposite, parseGrid, pointsBackTo, solve1, solve2, startLocation, validMoves)
 import Prelude
 
 import Data.Array.NonEmpty (NonEmptyArray, fromArray)
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromJust)
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
-import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Effect.Class (liftEffect)
 import Parsing (runParser)
 import Partial.Unsafe (unsafePartial)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.Console (write)
 import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
@@ -82,7 +75,8 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       describe ("example 3" <> show g3) do
         it "mapPipeEdges" do
           mapPipeEdges g3 `shouldEqual` grid3
-      pending "solve part 2"
+        it "solve part 2" do
+          solve2 ex3 `shouldEqual` Right { in: 4, out: 42 }
 
 ex1 :: String
 ex1 =
@@ -154,13 +148,13 @@ ex3 =
 grid3 :: Grid InOrOut
 grid3 = mkGrid
   [ [ Out, Out, Out, Out, Out, Out, Out, Out, Out, Out ]
-  , [ Out, Corner, EdgeDown, EdgeDown, EdgeDown, EdgeDown, EdgeDown, EdgeDown, Corner, Out ]
-  , [ Out, EdgeRight, Corner, EdgeUp, EdgeUp, EdgeUp, EdgeUp, Corner, EdgeLeft, Out ]
+  , [ Out, CornerDownRight, EdgeDown, EdgeDown, EdgeDown, EdgeDown, EdgeDown, EdgeDown, CornerDownLeft, Out ]
+  , [ Out, EdgeRight, CornerUpLeft, EdgeUp, EdgeUp, EdgeUp, EdgeUp, CornerUpRight, EdgeLeft, Out ]
   , [ Out, EdgeRight, EdgeLeft, Out, Out, Out, Out, EdgeRight, EdgeLeft, Out ]
   , [ Out, EdgeRight, EdgeLeft, Out, Out, Out, Out, EdgeRight, EdgeLeft, Out ]
-  , [ Out, EdgeRight, Corner, EdgeDown, Corner, Corner, EdgeDown, Corner, EdgeLeft, Out ]
+  , [ Out, EdgeRight, CornerDownLeft, EdgeDown, CornerDownLeft, CornerDownRight, EdgeDown, CornerDownRight, EdgeLeft, Out ]
   , [ Out, EdgeRight, In, In, EdgeLeft, EdgeRight, In, In, EdgeLeft, Out ]
-  , [ Out, Corner, EdgeUp, EdgeUp, Corner, Corner, EdgeUp, EdgeUp, Corner, Out ]
+  , [ Out, CornerUpRight, EdgeUp, EdgeUp, CornerUpLeft, CornerUpRight, EdgeUp, EdgeUp, CornerUpLeft, Out ]
   , [ Out, Out, Out, Out, Out, Out, Out, Out, Out, Out ]
   ]
 
