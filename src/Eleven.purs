@@ -13,32 +13,31 @@ module AdventOfCode.Twenty23.Eleven
   , main
   , parseImage
   , solve1
+  , solve2
   ) where
 
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Util (inc, sumMap)
 import Prelude
 
 import Control.Alt ((<|>))
-import Data.Array (foldMap, foldr, fromFoldable, insertAt, intercalate, snoc, sortBy, (!!))
+import Data.Array (foldMap, foldr, fromFoldable, insertAt, intercalate, snoc, (!!))
 import Data.Either (Either)
+import Data.Enum (fromEnum)
 import Data.Foldable (sum)
-import Data.Lens (class Wander, Indexed, IndexedOptic', IndexedTraversal, IndexedTraversal', Iso', Traversal', allOf, filtered, iso, itoListOf, lengthOf, preview, traversed)
-import Data.Lens.Index (class Index, ix)
-import Data.Lens.Indexed (itraversed)
+import Data.Lens (Iso', Traversal', allOf, iso, lengthOf, preview, traversed)
+import Data.Lens.Index (ix)
 import Data.Lens.Types (AffineTraversal')
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Newtype (class Newtype, unwrap, wrap)
 import Data.Ord (abs)
-import Data.Ordering (invert)
-import Data.TraversableWithIndex (class TraversableWithIndex)
-import Data.Tuple (Tuple(..), fst)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
+import JS.BigInt (BigInt, fromInt)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (ParseError(..), Parser, runParser)
+import Parsing (ParseError, Parser, runParser)
 import Parsing.Combinators (sepEndBy, (<?>))
 import Parsing.Combinators.Array (many)
 import Parsing.String (char)
@@ -51,9 +50,32 @@ main = launchAff_ do
     log "Sum of shortest paths between galaxies"
     logShow $ solve1 input
     log "Part2:"
+    log "Sum of shortest paths between galaxies far far away"
+    logShow $ solve2 input
 
--- log ""
--- logShow $ solve2 input
+solve2 :: String -> Either ParseError BigInt
+solve2 input = runParser input parseImage <#> \image ->
+  let
+    rows = findEmpty _row image
+    cols = findEmpty _col image
+    galaxies = findGalaxies image
+  in
+    getDistsWithGaps galaxies rows cols
+
+getDistsWithGaps :: Array Coord -> Array Int -> Array Int -> BigInt
+getDistsWithGaps galaxies rows cols =
+  (_ / fromInt 2) $ sum do
+    c1 <- galaxies
+    c2 <- galaxies
+    let
+      baseDist = dist c1 c2
+      numGaps = nBetween c1.y c2.y rows + nBetween c1.x c2.x cols
+    pure $ fromInt $ baseDist + 999_999 * numGaps
+
+nBetween :: Int -> Int -> Array Int -> Int
+nBetween a b = sumMap (fromEnum <<< bet)
+  where
+  bet = between (min a b) (max a b)
 
 solve1 :: String -> Either ParseError Int
 solve1 input =
@@ -140,4 +162,7 @@ getShortestPaths :: Array Coord -> Int
 getShortestPaths arr = (_ / 2) $ sum do
   c1 <- arr
   c2 <- arr
-  pure $ abs (c1.x - c2.x) + abs (c1.y - c2.y)
+  pure $ dist c1 c2
+
+dist :: Coord -> Coord -> Int
+dist c1 c2 = abs (c1.x - c2.x) + abs (c1.y - c2.y)

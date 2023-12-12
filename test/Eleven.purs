@@ -3,20 +3,16 @@ module Test.AdventOfCode.Twenty23.Eleven
   , main
   ) where
 
-import AdventOfCode.Twenty23.Eleven
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Eleven (Coord, _col, _row, expand, findEmpty, findGalaxies, getShortestPaths, isEmpty, parseImage, solve1, solve2)
 import Prelude
 
 import Data.Either (Either(..))
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
+import JS.BigInt (fromInt)
 import Parsing (runParser)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (fail, shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
@@ -55,7 +51,8 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       it "solve part1" do
         solve1 example `shouldEqual` Right 374
     describe "Part 2" do
-      pending "more stuff"
+      it "solve part2" do
+        solve2 example `shouldEqual` Right (fromInt 82000210)
 
 example :: String
 example =
