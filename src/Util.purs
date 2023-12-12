@@ -16,6 +16,8 @@ module AdventOfCode.Twenty23.Util
   , sumMap
   , testParser
   , to2dArray
+  , unsafeFromRight
+  , unsafeParse
   ) where
 
 import Prelude
@@ -38,6 +40,7 @@ import Effect.Aff (Error)
 import Parsing (Parser, runParser)
 import Parsing.Combinators (choice, try, (<?>))
 import Parsing.String (char, string)
+import Partial.Unsafe (unsafePartial)
 import PointFree ((<..))
 import Prim.Row (class Cons)
 import Record as Rec
@@ -153,3 +156,12 @@ last2 l = do
   uns <- unsnoc l
   penult <- last uns.init
   pure $ Tuple penult uns.last
+
+unsafeFromRight :: forall a b. Either a b -> b
+unsafeFromRight = unsafePartial fromRight
+  where
+  fromRight :: Partial => Either a b -> b
+  fromRight (Right b) = b
+
+unsafeParse :: forall a. String -> Parser String a -> a
+unsafeParse inp par = unsafeFromRight $ runParser inp par

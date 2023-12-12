@@ -1,6 +1,11 @@
 import Prelude
 import Parsing (runParser)
-import Data.Array (filter)
-import AdventOfCode.Twenty23.Ten
+import Data.Either as E
+import Data.Array as A 
+import AdventOfCode.Twenty23.Eleven
 import AdventOfCode.Twenty23.Util
-import Test.AdventOfCode.Twenty23.Ten
+import Test.AdventOfCode.Twenty23.Eleven
+import Data.Lens as L
+import Data.Lens.Fold as LF
+import Partial (class Partial)
+import Partial.Unsafe (unsafePartial)
