@@ -2,22 +2,23 @@ module Test.AdventOfCode.Twenty23.Twelve
   ( main
   ) where
 
-import AdventOfCode.Twenty23.Twelve
-import AdventOfCode.Twenty23.Util
 import Prelude
 
+import AdventOfCode.Twenty23.Twelve (Rec, Spring(..), countPossibilities, parseRecords, solve1, solve2, unfold, validate)
+import AdventOfCode.Twenty23.Util (testParser)
 import Data.Either (Either(..))
+import Data.Foldable (foldMap, for_)
+import Data.FoldableWithIndex (forWithIndex_)
 import Data.List (List(..), all, any, (:))
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Effect.Class.Console (grouped, log)
+import JS.BigInt (fromInt)
+import Test.Spec (describe, it, pending')
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
+import Test.Spec.Style (bold, cyan, dim, styled)
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
@@ -43,9 +44,32 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         solve1 example `shouldEqual` Right 21
     describe "Part 2" do
       it "unfold record" do
-        unfold unfoldEx `shouldEqual` unfoldEx'
+        unfold 5 unfoldEx `shouldEqual` unfoldEx'
       it "solve2" do
-        solve2 example `shouldEqual` Right 525152
+        solve2 example `shouldEqual` Right (fromInt 525152)
+    describe "Experiments" do
+      pending' "1/2/5" do
+        log (c $ b "Relationships between solutions for normal case and multiplied:")
+        forWithIndex_ exampleParsed \i ex1 -> do
+          grouped ("Example " <> show i) do
+            grouped "1x:" do
+              log $ d (foldMap show ex1.springs)
+              log $ "Possibilities: " <> show (countPossibilities ex1)
+            for_ [ 2, 3, 4, 5 ] \n -> do
+              let
+                ex' = unfold n ex1
+              grouped (show n <> "x:") do
+                log $ d (foldMap show ex'.springs)
+                log $ "Possibilities: " <> show (countPossibilities ex')
+
+c :: String -> String
+c = styled cyan
+
+b ∷ String → String
+b = styled bold
+
+d :: String -> String
+d = styled dim
 
 example :: String
 example =

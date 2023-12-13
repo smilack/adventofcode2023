@@ -8,10 +8,9 @@ module AdventOfCode.Twenty23.Twelve
   , solve2
   , unfold
   , validate
-  )
-  where
+  ) where
 
-import AdventOfCode.Twenty23.Util
+import AdventOfCode.Twenty23.Util (inc, sumMap)
 import Prelude
 
 import Control.Alt ((<|>))
@@ -26,11 +25,12 @@ import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
+import JS.BigInt (BigInt, fromInt)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
-import Parsing (ParseError(..), Parser, runParser)
+import Parsing (ParseError, Parser, runParser)
 import Parsing.Combinators (many, replicateA, sepBy, sepEndBy, skipMany, skipMany1, (<?>))
-import Parsing.String (anyTill, char)
+import Parsing.String (char)
 import Parsing.String.Basic (intDecimal)
 
 main :: Effect Unit
@@ -44,17 +44,26 @@ main = launchAff_ do
     log "Number of possible arrangements after quintupling"
     logShow $ solve2 input
 
-solve2 :: String -> Either ParseError Int
+solve2 :: String -> Either ParseError BigInt
 solve2 input =
-  sumMap (countPossibilities <<< unfold)
+  sumMap extrapolatePossibilities
     <$> runParser input parseRecords
 
-unfold :: Rec -> Rec
-unfold { springs, groups } =
+unfold :: Int -> Rec -> Rec
+unfold n { springs, groups } =
   { springs: intercalate (Unknown : Nil)
-      $ (replicate 5 springs :: List (List Spring))
-  , groups: join $ replicate 5 groups
+      $ (replicate n springs :: List (List Spring))
+  , groups: join $ replicate n groups
   }
+
+extrapolatePossibilities :: Rec -> BigInt
+extrapolatePossibilities rec = n * m4
+  where
+  n = fromInt $ countPossibilities rec
+  m =
+    ( fromInt $ countPossibilities (unfold 2 rec)
+    ) / n
+  m4 = m * m * m * m
 
 solve1 :: String -> Either ParseError Int
 solve1 input =
