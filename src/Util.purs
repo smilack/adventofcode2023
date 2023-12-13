@@ -23,10 +23,10 @@ module AdventOfCode.Twenty23.Util
 import Prelude
 
 import Control.Monad.Error.Class (class MonadThrow)
-import Data.Array (foldl)
 import Data.Array.NonEmpty (NonEmptyArray, singleton, snoc)
 import Data.Either (Either(..))
 import Data.Enum (class BoundedEnum, enumFromTo)
+import Data.Foldable (class Foldable, foldr)
 import Data.Lens (lastOf, traversed)
 import Data.List (List, init, last, unsnoc)
 import Data.Maybe (Maybe)
@@ -47,8 +47,15 @@ import Record as Rec
 import Test.Spec.Assertions (shouldEqual)
 import Type.Proxy (Proxy(..))
 
-sumMap :: forall a. (a -> Int) -> Array a -> Int
-sumMap = foldl add 0 <.. map
+sumMap
+  :: forall f a i
+   . Semiring i
+  => Functor f
+  => Foldable f
+  => (a -> i)
+  -> f a
+  -> i
+sumMap = foldr add zero <.. map
 
 to2dArray :: String -> Array (Array Char)
 to2dArray = map toCharArray <<< lines
